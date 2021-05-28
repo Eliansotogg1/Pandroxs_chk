@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+'''#!/usr/bin/env python
 from __future__ import print_function
 import sys
 import textwrap
@@ -28,4 +28,5 @@ Thanks for understanding!
 """
 
 print(message, file=sys.stderr)
-sys.exit(1)
+sys.exit(1)'''
+

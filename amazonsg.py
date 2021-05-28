@@ -45,6 +45,7 @@ def tempmail():
 
 #Separa los datos de la cc
 def crearlinea():
+    global b
     file = [s.rstrip() for s in b]
     for lines in file:
         cc = lines.split("|")
@@ -228,17 +229,32 @@ def otpcode():
     timer6 = threading.Timer(4, fillcc1())
     timer6.start()
 
+def puzzles():
+    driver.implicitly_wait(10)
+  
+    # Cambia el foco al iframe
+    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
+    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
+    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
+    
+    # Ahora podemos hacer clic en el botón'
+    driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
+    driver.switch_to.default_content()
+  
+   
 
-#INITIAL_PROCESS
+
 def registroamazon():
     print(Fore.CYAN +"SIGNING UP ACCOUNT ")
     driver.find_element(By.XPATH, '//*[@id="createAccountSubmit"]').click()
     driver.find_element(By.NAME, 'customerName').send_keys(names.get_full_name())
     driver.find_element(By.NAME, 'email').send_keys(correitotemp)
-    driver.find_element(By.NAME, 'password').send_keys("SADKJASDKLSAJDKALSDJ")
-    driver.find_element(By.NAME, 'passwordCheck').send_keys("SADKJASDKLSAJDKALSDJ")
+    driver.find_element(By.NAME, 'password').send_keys("ColombiaSOS2021")
+    driver.find_element(By.NAME, 'passwordCheck').send_keys("ColombiaSOS2021")
     driver.find_element(By.XPATH, '//*[@id="continue"]').click()
-    sleep(3)    
+
+    puzzles()
+    #Rompe el ciclo
     bodyText0 = driver.find_element_by_tag_name('body').text
     bodyText1 = driver.find_element_by_tag_name('body').text
     if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
@@ -262,6 +278,7 @@ def webdriver_chromeoptions():
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--incognito')
     chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument("start-minimized")
     #chrome_options.add_argument("--headless")
 
     
@@ -273,7 +290,7 @@ if __name__ == "__main__":
     init()
 
     #Manejo de excepciones
-    sys.tracebacklimit = 0
+    #sys.tracebacklimit = 0
 
     
     
@@ -315,6 +332,7 @@ if __name__ == "__main__":
     tempmail()
 
     #Funcion-----------------------------------------------------------------------------------------------------------------
+    
     crearlinea()
 
     #webdriver_chromeoptions REGISTRAR AMAZON---------------------------------------------------------------------------------

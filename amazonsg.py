@@ -183,7 +183,7 @@ def solvecaptcha2():
     chrome_options.add_argument('--incognito')
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument("--headless");
+    chrome_options.add_argument("--headless")
     browser = webdriver.Chrome('chromedriver.exe', options=chrome_options)
     browser.get("https://www.askapache.com/online-tools/base64-image-converter/")
     browser.implicitly_wait(30)
@@ -241,14 +241,12 @@ def puzzles():
     driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
     driver.switch_to.default_content()
   
-   
-
-
 def registroamazon():
     print(Fore.CYAN +"SIGNING UP ACCOUNT ")
     driver.find_element(By.XPATH, '//*[@id="createAccountSubmit"]').click()
     driver.find_element(By.NAME, 'customerName').send_keys(names.get_full_name())
     driver.find_element(By.NAME, 'email').send_keys(correitotemp)
+    print(correitotemp)
     driver.find_element(By.NAME, 'password').send_keys("ColombiaSOS2021")
     driver.find_element(By.NAME, 'passwordCheck').send_keys("ColombiaSOS2021")
     driver.find_element(By.XPATH, '//*[@id="continue"]').click()
@@ -257,7 +255,10 @@ def registroamazon():
     #Rompe el ciclo
     bodyText0 = driver.find_element_by_tag_name('body').text
     bodyText1 = driver.find_element_by_tag_name('body').text
-    if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
+    
+    
+    
+    '''if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
         print(Fore.RED + "CAMBIAR CORREO")
     elif "Introduce los caracteres tal y como aparecen en la imagen." in bodyText1:
         print(Fore.YELLOW + "CAPTCHA FOUND, NEXT TIME CHANGE IP")
@@ -265,12 +266,14 @@ def registroamazon():
         solvecaptcha()
     else: 
         timer6 = threading.Timer(5, otpcode())
-        timer6.start()
+        timer6.start()'''
 
 def webdriver_chromeoptions():
     global chrome_options
     #Inica el API WEBDRIVER CHROME para ajustar las opciones
     chrome_options = webdriver.ChromeOptions()
+    
+
     # Agrega los opciones del navegador
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument("--disable-extensions")
@@ -278,8 +281,12 @@ def webdriver_chromeoptions():
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--incognito')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument("start-minimized")
-    #chrome_options.add_argument("--headless")
+    #chrome_options.add_argument("--headless")                  #Ocultar navegador
+    chrome_options.add_argument("--window-size=800,600")
+    chrome_options.add_argument("--disable-infobars")
+    chrome_options.add_argument("--disable-popup-blocking")
+
+    
 
     
 
@@ -332,11 +339,11 @@ if __name__ == "__main__":
     tempmail()
 
     #Funcion-----------------------------------------------------------------------------------------------------------------
-    
+    #Toma una linea de cc.txt
     crearlinea()
 
     #webdriver_chromeoptions REGISTRAR AMAZON---------------------------------------------------------------------------------
-    webdriver_chromeoptions()
+    #webdriver_chromeoptions()
     #Inicia el navegador
     #chromedriver servidor remoto que expone la intefaz para la automatizacion del navegador
     driver = webdriver.Chrome('chromedriver', options=chrome_options) 

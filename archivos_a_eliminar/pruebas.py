@@ -111,10 +111,15 @@ print('get fucked arkose labs')
 '''
 
 
-def funcion_global():
+'''def funcion_global():
     global b
     b = 1
 
 b = 2
 funcion_global()
 print(b)
+'''
+try:
+    pass
+except IndexError:
+    pass

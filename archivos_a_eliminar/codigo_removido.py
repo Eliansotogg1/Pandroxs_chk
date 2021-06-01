@@ -1,6 +1,12 @@
 
 #Codigo para resolver el captcha
-'''def solvecaptcha3():
+'''
+#captcha
+    captchalink = ""
+    encode2 = ''
+    cadena = ""
+    d = ""
+def solvecaptcha3():
     global cadena
     global d
     chrome_options = webdriver.ChromeOptions()
@@ -87,3 +93,23 @@ def solvecaptcha():
     else:
         solvecaptcha2()'''
 
+'''
+#Velocidad de carga para la fucion textito
+loading_speed = 30
+loading_string = "." * 3
+# Funcion no utilizada
+def textito(texto):
+    
+        #Toma el texto y lo imprime caracter por caracter
+        #en consola, limpiando el bufer
+    
+
+    global loading_speed
+    loading = True
+    while loading:
+        for index, char in enumerate(texto):
+            sys.stdout.write(char)
+            sys.stdout.flush() 
+            time.sleep(1.0 / loading_speed)
+            loading = False
+'''

@@ -11,32 +11,18 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from colorama import *
 from playsound import playsound
+from selenium.common.exceptions import *
 import random
 import requests
-import time
 import re
 import names
 import sys
 
-
-# Funcion no utilizada
-def textito(texto):
-    '''
-        Toma el texto y lo imprime caracter por caracter
-        en consola, limpiando el bufer
-    '''
-
-    global loading_speed
-    loading = True
-    while loading:
-        for index, char in enumerate(texto):
-            sys.stdout.write(char)
-            sys.stdout.flush() 
-            time.sleep(1.0 / loading_speed)
-            loading = False
-
 #Crea el Email
 def tempmail():
+
+    browser221.implicitly_wait(30)  #Espera 30 segundos o hasta que cargue
+
     global correitotemp
     mailll = browser221.find_element_by_id("userName")
     tempmail1 = mailll.get_attribute("value")
@@ -131,8 +117,7 @@ def filladress():
     driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
     print(Fore.BLUE + "ADDING ADDRESS")
     pagar()
-'''
-'''
+
 def otpcode():
     '''
     browser221.refresh()
@@ -154,6 +139,8 @@ def error_register():
     #Lee los mensajes de erro y si no hay pasa al otp
     if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
         print(Fore.RED + "CAMBIAR CORREO")
+        driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")
+        registroamazon()
     elif "Introduce los caracteres tal y como aparecen en la imagen." in bodyText1:
         print(Fore.YELLOW + "CAPTCHA FOUND, NEXT TIME CHANGE IP")
         print(Fore.BLUE + "WAIT UNTIL CAPTCHA SOLVED")
@@ -161,10 +148,12 @@ def error_register():
         timer6 = threading.Timer(5, otpcode())
         timer6.start()
     else:
+        sleep(3)
         error_register()
 
 def registroamazon():
     print(Fore.CYAN +"SIGNING UP ACCOUNT ")
+    driver.implicitly_wait(30)  #Delay
 
     #Click para registrarse
     driver.find_element(By.XPATH, '//*[@id="createAccountSubmit"]').click()
@@ -186,7 +175,6 @@ def registroamazon():
     # Ahora podemos hacer clic en el botón'
     driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
     driver.switch_to.default_content()
-
     
     #Espera respuestas al aceptar el captcha
     error_register()
@@ -208,46 +196,40 @@ def webdriver_chromeoptions():
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--disable-popup-blocking")
 
-# Main 
+# main 
 if __name__ == "__main__":
     
     init()      # Inicializa todos las referencias como paquetes
     #sys.tracebacklimit = 0     #Manejo de excepciones
     
-    #Inicializa variables
-    '''#Velocidad de carga para la fucion textito
-    loading_speed = 30
-    loading_string = "." * 3
-    #crearlinea
-    cc1 = ""
-    mes = ""
-    anio = ""
-    cvv = ""
-    #Generar email
-    email2 =""
-    #Crear correo temporal
-    correitotemp = ""
-    #captcha
-    captchalink = ""
-    encode2 = ''
-    cadena = ""
-    d = ""
-    '''
-    #Carga el archivo cc.txt
-    ccs = open("cc.txt", "r+").readlines()
-    indice_ultima = len(ccs) - 1
+    try:
+        '''
+        #Inicializa variables
+        #crearlinea
+        cc1 = ""
+        mes = ""
+        anio = ""
+        cvv = ""
+        #Generar email
+        email2 =""
+        #Crear correo temporal
+        correitotemp = ""
+        '''
+        #Carga el archivo cc.txt
+        ccs = open("cc.txt", "r+").readlines()
+        indice_ultima = len(ccs) - 1
+
+        webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
+
+        browser221 = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea la interfaz con las opciones
+        browser221.get("https://tempm.com/ticaipm.com") #Carga la web
+        tempmail()  #Extrae datos del mail
+
+        driver = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea interfaz con las opciones
+        driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web
+        registroamazon()    #Se registra en amazon
+        crearlinea()    #Toma una linea de cc.txt
+
+    except WebDriverException:
+        print(Fore.RED, "Error al conectar a la red")
     
-
-    webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
-
-    browser221 = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea la interfaz con las opciones
-    browser221.get("https://tempm.com/ticaipm.com") #Carga la web
-    browser221.implicitly_wait(100)  #Espera 100 segundos o hasta que cargue
-    tempmail()  #Extrae datos del mail
-
-    driver = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea interfaz con las opciones
-    driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web
-    driver.implicitly_wait(40)  #Delay
-    registroamazon()    #Se registra en amazon
-
-    crearlinea()    #Toma una linea de cc.txt

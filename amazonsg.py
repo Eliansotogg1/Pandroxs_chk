@@ -40,13 +40,13 @@ def tempmail():
     global correitotemp
     mailll = browser221.find_element_by_id("userName")
     tempmail1 = mailll.get_attribute("value")
-    correitotemp = tempmail1+"@19.escritossad.net"
+    correitotemp = tempmail1+"@ticaipm.com"
     print("CREATING EMAIL  ...")
 
 #Separa los datos de la cc
 def crearlinea():
-    global b
-    file = [s.rstrip() for s in b]
+    global ccs
+    file = [s.rstrip() for s in ccs]
     for lines in file:
         cc = lines.split("|")
         global cc1
@@ -60,8 +60,8 @@ def crearlinea():
 
 def remover_ultima():
     global indice_ultima
-    global b
-    b.pop(indice_ultima)
+    global ccs
+    ccs.pop(indice_ultima)
     indice_ultima -= 1
 
 def generargmail(email):
@@ -131,95 +131,12 @@ def filladress():
     driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
     print(Fore.BLUE + "ADDING ADDRESS")
     pagar()
-
-def solvecaptcha3():
-    global cadena
-    global d
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--ignore-certificate-errors')
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--incognito')
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    #chrome_options.add_argument("--headless");
-    browser1 = webdriver.Chrome('chromedriver.exe', options=chrome_options)
-    browser1.get("https://www.urlencoder.org/")
-    browser1.implicitly_wait(20)
-    sleep(3)
-    browser1.find_element_by_class_name("qc-cmp-button").click()
-    browser1.find_element(By.NAME, 'input').send_keys(encode2)
-    sleep(3)
-    browser1.find_element(By.XPATH, '/html/body/div/main/div[1]/form/button').click()
-    sleep(4)
-    codigo1111 = browser1.find_element(By.NAME, 'output')
-    codigo2222 = codigo1111.text
-    r = requests.post("https://d01aacd2afe09792f278e8e6639f8f7e.000webhostapp.com/index.php", data={'body': codigo2222})
-    print(Fore.BLUE +"CAPTCHA SOLVED")
-    sleep(15)
-    x = r.text
-    be = str(x)
-
-    cadena = re.sub("\D", "", be)
-    browser1.get("http://2captcha.com/res.php?key=468af739430721a5f0aedda0fb168204&action=get&id="+cadena[:-1])
-    efe = browser1.find_element_by_tag_name('body').text
-    captcha = efe.split("|")
-    de = captcha[1]
-    print(Fore.GREEN +"CAPCHA BYPASS ")
-    driver.find_element_by_id("auth-captcha-guess").send_keys(de)
-    driver.find_element(By.NAME, 'password').send_keys("SADKJASDKLSAJDKALSDJ")
-    driver.find_element(By.NAME, 'passwordCheck').send_keys("SADKJASDKLSAJDKALSDJ")
-    driver.find_element(By.XPATH, '//*[@id="continue"]').click()
-    otpcode()
-def solvecaptcha2():
-    global captchalink
-    global encode2
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--ignore-certificate-errors')
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--incognito')
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument("--headless")
-    browser = webdriver.Chrome('chromedriver.exe', options=chrome_options)
-    browser.get("https://www.askapache.com/online-tools/base64-image-converter/")
-    browser.implicitly_wait(30)
-    browser.find_element(By.NAME, 'http_remote_url').send_keys(captchalink)
-    browser.find_element(By.XPATH, '//*[@id="submitbtn"]/input').click()
-    sleep(10)
-    encode = browser.find_element_by_id("ta_raw")
-    encode2 = encode.text
-    solvecaptcha3()
-def solvecaptcha():
-    global captchalink
-    captcha = driver.find_element_by_tag_name("img")
-    captchalink = captcha.get_attribute("src")
-    if ".gif" in captchalink:
-        browsercap = webdriver.Chrome('chromedriver.exe')
-        browsercap.get("http://gifgifs.com/es/resizer/")
-        browsercap.implicitly_wait(40)
-        browsercap.find_element_by_id("paste-url").click()
-        browsercap.find_element_by_id("url").send_keys(captchalink)
-        browsercap.find_element_by_id("upload-url").click()
-        sleep(2) 
-        browsercap.find_element_by_id("percent").clear()
-        browsercap.find_element_by_id("percent").send_keys("33")
-        browsercap.find_element_by_id("doit-button").click()
-        sleep(4)
-        browsercap.find_element_by_link_text("Open in new window").click()
-        browsercap.switch_to_window(browsercap.window_handles[1])
-        capt = browsercap.find_element_by_tag_name("img")
-        src = capt.get_attribute("src")
-        captchalink = src
-        #print(captchalink)
-        
-    else:
-        solvecaptcha2()
-
+'''
+'''
 def otpcode():
+    '''
+    browser221.refresh()
+    browser221.implicitly_wait(10)'''
     codiguito = browser221.find_element_by_class_name("otp")
     codiguito2 = codiguito.text
     print(Fore.CYAN +"OTP SOLVED: ")
@@ -229,21 +146,30 @@ def otpcode():
     timer6 = threading.Timer(4, fillcc1())
     timer6.start()
 
-def puzzles():
-    driver.implicitly_wait(10)
-  
-    # Cambia el foco al iframe
-    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
-    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
-    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
+def error_register():
     
-    # Ahora podemos hacer clic en el botón'
-    driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
-    driver.switch_to.default_content()
-  
+    bodyText0 = driver.find_element_by_tag_name('body').text
+    bodyText1 = driver.find_element_by_tag_name('body').text
+    bodyText2 = driver.find_element_by_tag_name('body').text
+    #Lee los mensajes de erro y si no hay pasa al otp
+    if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
+        print(Fore.RED + "CAMBIAR CORREO")
+    elif "Introduce los caracteres tal y como aparecen en la imagen." in bodyText1:
+        print(Fore.YELLOW + "CAPTCHA FOUND, NEXT TIME CHANGE IP")
+        print(Fore.BLUE + "WAIT UNTIL CAPTCHA SOLVED")
+    elif "Verify email address" in bodyText2: 
+        timer6 = threading.Timer(5, otpcode())
+        timer6.start()
+    else:
+        error_register()
+
 def registroamazon():
     print(Fore.CYAN +"SIGNING UP ACCOUNT ")
+
+    #Click para registrarse
     driver.find_element(By.XPATH, '//*[@id="createAccountSubmit"]').click()
+
+    #Llena el formulario de registro
     driver.find_element(By.NAME, 'customerName').send_keys(names.get_full_name())
     driver.find_element(By.NAME, 'email').send_keys(correitotemp)
     print(correitotemp)
@@ -251,29 +177,25 @@ def registroamazon():
     driver.find_element(By.NAME, 'passwordCheck').send_keys("ColombiaSOS2021")
     driver.find_element(By.XPATH, '//*[@id="continue"]').click()
 
-    puzzles()
-    #Rompe el ciclo
-    bodyText0 = driver.find_element_by_tag_name('body').text
-    bodyText1 = driver.find_element_by_tag_name('body').text
+    #espera a que cargue la ventana de captcha
+    driver.implicitly_wait(10)
+    # Cambia el foco al iframe
+    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
+    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
+    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
+    # Ahora podemos hacer clic en el botón'
+    driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
+    driver.switch_to.default_content()
+
     
-    
-    
-    '''if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
-        print(Fore.RED + "CAMBIAR CORREO")
-    elif "Introduce los caracteres tal y como aparecen en la imagen." in bodyText1:
-        print(Fore.YELLOW + "CAPTCHA FOUND, NEXT TIME CHANGE IP")
-        print(Fore.BLUE + "WAIT UNTIL CAPTCHA SOLVED")
-        solvecaptcha()
-    else: 
-        timer6 = threading.Timer(5, otpcode())
-        timer6.start()'''
+    #Espera respuestas al aceptar el captcha
+    error_register()
 
 def webdriver_chromeoptions():
     global chrome_options
     #Inica el API WEBDRIVER CHROME para ajustar las opciones
     chrome_options = webdriver.ChromeOptions()
     
-
     # Agrega los opciones del navegador
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument("--disable-extensions")
@@ -286,24 +208,14 @@ def webdriver_chromeoptions():
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--disable-popup-blocking")
 
-    
-
-    
-
 # Main 
 if __name__ == "__main__":
     
-    # Inicializa todos las referencias como paquetes
-    init()
-
-    #Manejo de excepciones
-    #sys.tracebacklimit = 0
-
-    
+    init()      # Inicializa todos las referencias como paquetes
+    #sys.tracebacklimit = 0     #Manejo de excepciones
     
     #Inicializa variables
-
-    #Velocidad de carga para la fucion textito
+    '''#Velocidad de carga para la fucion textito
     loading_speed = 30
     loading_string = "." * 3
     #crearlinea
@@ -315,40 +227,27 @@ if __name__ == "__main__":
     email2 =""
     #Crear correo temporal
     correitotemp = ""
-    #?
-    a = open("cc.txt", "r+")
-    b = a.readlines()
-    cantidad_lineas = len(b)
-    indice_ultima = cantidad_lineas - 1 
     #captcha
     captchalink = ""
     encode2 = ''
     cadena = ""
     d = ""
+    '''
+    #Carga el archivo cc.txt
+    ccs = open("cc.txt", "r+").readlines()
+    indice_ultima = len(ccs) - 1
+    
 
-    #webdriver_chromeoptions CREAR TEMPMAIL----------------------------------------------------------------------------------
-    webdriver_chromeoptions()
-    #Inicia el navegador
-    #chromedriver servidor remoto que expone la intefaz para la automatizacion del navegador
-    browser221 = webdriver.Chrome('chromedriver', options=chrome_options) 
-    # Le da la pagia a la cual ingresar
-    browser221.get("https://tempm.com/19.escritossad.net")
-    #Delay
-    browser221.implicitly_wait(100)  
-    #Crar Email
-    tempmail()
+    webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
 
-    #Funcion-----------------------------------------------------------------------------------------------------------------
-    #Toma una linea de cc.txt
-    crearlinea()
+    browser221 = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea la interfaz con las opciones
+    browser221.get("https://tempm.com/ticaipm.com") #Carga la web
+    browser221.implicitly_wait(100)  #Espera 100 segundos o hasta que cargue
+    tempmail()  #Extrae datos del mail
 
-    #webdriver_chromeoptions REGISTRAR AMAZON---------------------------------------------------------------------------------
-    #webdriver_chromeoptions()
-    #Inicia el navegador
-    #chromedriver servidor remoto que expone la intefaz para la automatizacion del navegador
-    driver = webdriver.Chrome('chromedriver', options=chrome_options) 
-    # Le da la pagia a la cual ingresar
-    driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")
-    #Delay
-    driver.implicitly_wait(40)
-    registroamazon()
+    driver = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea interfaz con las opciones
+    driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web
+    driver.implicitly_wait(40)  #Delay
+    registroamazon()    #Se registra en amazon
+
+    crearlinea()    #Toma una linea de cc.txt

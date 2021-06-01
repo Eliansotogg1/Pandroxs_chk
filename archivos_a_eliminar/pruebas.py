@@ -119,7 +119,11 @@ b = 2
 funcion_global()
 print(b)
 '''
-try:
+'''try:
     pass
 except IndexError:
     pass
+''''''
+global a
+print(type(a))'''
+

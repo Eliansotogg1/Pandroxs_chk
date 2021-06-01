@@ -26,7 +26,7 @@ def tempmail():
     global correitotemp
     mailll = browser221.find_element_by_id("userName")
     tempmail1 = mailll.get_attribute("value")
-    correitotemp = tempmail1+"@ticaipm.com"
+    correitotemp = tempmail1+"@hasevo.com"
     print("CREATING EMAIL  ...")
 
 #Separa los datos de la cc
@@ -118,40 +118,57 @@ def filladress():
     print(Fore.BLUE + "ADDING ADDRESS")
     pagar()
 
+#-------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+
 def otpcode():
-    '''
-    browser221.refresh()
-    browser221.implicitly_wait(10)'''
+    
     codiguito = browser221.find_element_by_class_name("otp")
     codiguito2 = codiguito.text
     print(Fore.CYAN +"OTP SOLVED: ")
     driver.find_element(By.NAME, 'code').send_keys(codiguito2)
     driver.find_element(By.CLASS_NAME, 'a-button-input').click()
     browser221.quit()
-    timer6 = threading.Timer(4, fillcc1())
-    timer6.start()
 
-def error_register():
+    WebDriverWait(driver, 120).until(EC.presence_of_element_located((By.ID, "twotabsearchtextbox")))
     
+def error_register():
+
+    global nerror    
     bodyText0 = driver.find_element_by_tag_name('body').text
-    bodyText1 = driver.find_element_by_tag_name('body').text
-    bodyText2 = driver.find_element_by_tag_name('body').text
+
     #Lee los mensajes de erro y si no hay pasa al otp
-    if "Error interno. Inténtalo otra vez más tarde." in bodyText0:
-        print(Fore.RED + "CAMBIAR CORREO")
-        driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")
-        registroamazon()
-    elif "Introduce los caracteres tal y como aparecen en la imagen." in bodyText1:
+    if "Internal Error. Please try again later." in bodyText0:
+        if nerror == 3:
+            print(Fore.RED, "Error al llenar el formulario")
+            return False
+        else:
+            nerror += 1
+            print(Fore.RED + "CAMBIAR CORREO")
+            browser221.get("https://tempm.com/hasevo.com") #Carga la web
+            tempmail()  #Extrae datos del mail
+            driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")
+            registroamazon()
+    elif "Solve this puzzle to protect your account" in bodyText0:
         print(Fore.YELLOW + "CAPTCHA FOUND, NEXT TIME CHANGE IP")
         print(Fore.BLUE + "WAIT UNTIL CAPTCHA SOLVED")
-    elif "Verify email address" in bodyText2: 
-        timer6 = threading.Timer(5, otpcode())
-        timer6.start()
+        return True
+    elif "Verify email address" in bodyText0: 
+        try:
+            timer6 = threading.Timer(5, otpcode())
+            timer6.start()
+        except:
+            return False
+        return True
+
     else:
         sleep(3)
         error_register()
+    
 
 def registroamazon():
+
     print(Fore.CYAN +"SIGNING UP ACCOUNT ")
     driver.implicitly_wait(30)  #Delay
 
@@ -161,23 +178,31 @@ def registroamazon():
     #Llena el formulario de registro
     driver.find_element(By.NAME, 'customerName').send_keys(names.get_full_name())
     driver.find_element(By.NAME, 'email').send_keys(correitotemp)
-    print(correitotemp)
     driver.find_element(By.NAME, 'password').send_keys("ColombiaSOS2021")
     driver.find_element(By.NAME, 'passwordCheck').send_keys("ColombiaSOS2021")
     driver.find_element(By.XPATH, '//*[@id="continue"]').click()
 
     #espera a que cargue la ventana de captcha
     driver.implicitly_wait(10)
-    # Cambia el foco al iframe
-    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
-    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
-    driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
-    # Ahora podemos hacer clic en el botón'
-    driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
-    driver.switch_to.default_content()
-    
-    #Espera respuestas al aceptar el captcha
-    error_register()
+    er = error_register()    #Revisa si hay errores en el formulario
+    if er != False:
+        # Cambia el foco al iframe
+        driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
+        driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
+        driver.switch_to.frame(driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
+        # Ahora podemos hacer clic en el botón'
+        driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
+        driver.switch_to.default_content()
+        
+        #Espera respuestas al aceptar el captcha
+        WebDriverWait(driver, 120).until(EC.presence_of_element_located((By.ID, "cvf-input-code")))
+        er = error_register()    #Revisa si hay errores en el formulario
+        if er != False:
+
+            pass
+        
+        else:
+            print(Fore.RED, "Tiempo de espera de OTP number extendido")
 
 def webdriver_chromeoptions():
     global chrome_options
@@ -196,6 +221,11 @@ def webdriver_chromeoptions():
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--disable-popup-blocking")
 
+
+#-------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+
 # main 
 if __name__ == "__main__":
     
@@ -203,18 +233,7 @@ if __name__ == "__main__":
     #sys.tracebacklimit = 0     #Manejo de excepciones
     
     try:
-        '''
-        #Inicializa variables
-        #crearlinea
-        cc1 = ""
-        mes = ""
-        anio = ""
-        cvv = ""
-        #Generar email
-        email2 =""
-        #Crear correo temporal
-        correitotemp = ""
-        '''
+       
         #Carga el archivo cc.txt
         ccs = open("cc.txt", "r+").readlines()
         indice_ultima = len(ccs) - 1
@@ -222,12 +241,14 @@ if __name__ == "__main__":
         webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
 
         browser221 = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea la interfaz con las opciones
-        browser221.get("https://tempm.com/ticaipm.com") #Carga la web
+        browser221.get("https://tempm.com/hasevo.com") #Carga la web
         tempmail()  #Extrae datos del mail
 
         driver = webdriver.Chrome('chromedriver', options=chrome_options)   #Crea interfaz con las opciones
-        driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web
+        driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
+        nerror = 0          #Contador de errores que se usa en error_register()
         registroamazon()    #Se registra en amazon
+
         crearlinea()    #Toma una linea de cc.txt
 
     except WebDriverException:

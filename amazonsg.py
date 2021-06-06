@@ -1,9 +1,11 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common import by
 from selenium.webdriver.common.by import By
 from time import sleep
 import threading
 from notify_run import Notify
+from selenium.webdriver.remote import switch_to
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,41 +19,66 @@ import requests
 import re
 import names
 import sys
+import os
 
 class Chek:
     
+    def __init__(self, a):
+
+        if a == True:
+            try:
+            
+                init()      # Inicializa todos las referencias como paquetes
+                #sys.tracebacklimit = 0     #Manejo de excepcioneswa
+                #Carga el archivo cc.txt
+                self.ccs = open("cc.txt", "r+").readlines()
+                self.indice_ultima = len(self.ccs) - 1
+
+                self.webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
+
+                path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
+                self.__browser221 = webdriver.Chrome(path, options=self.chrome_options)   #Crea la interfaz con las opciones
+                self.__browser221.get("https://tempm.com/hasevo.com") #Carga la web
+                self.tempmail()  #Extrae datos del mail
+
+                self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
+                self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
+                self.nerro = 0          #Contador de errores que se usa en self.error_register()
+                self.registroamazon()    #Se registra en amazon
+
+                self.crearlinea()    #Toma una linea de cc.txt
+
+            except WebDriverException as ex:
+                print(Fore.RED, ex.msg)
+        else:
+            self.load_cctxt()
+            self.crearlinea()
+            self.crearlinea()
+
+            path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
+            self.webdriver_chromeoptions()
+            self.__driver = webdriver.Chrome(path, options=self.chrome_options)
+            self.__driver.get('https://www.amazon.sg/gp/prime/pipeline/membersignup')
+            self.__driver.find_element(By.ID, 'ap_email').send_keys('3132122944')
+            self.__driver.find_element(By.ID, 'ap_password').send_keys('Elian123')
+            self.__driver.find_element(By.ID, 'signInSubmit').click()
+            self.__driver.find_element(By.LINK_TEXT, 'Add a credit or debit card').click()
+            #WebDriverWait(self.__driver, 30).until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'pp-EY0PvP-44')))
+            sleep(2)
+            self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
 
 
-    def __init__(self):
 
-        init()      # Inicializa todos las referencias como paquetes
-        #sys.tracebacklimit = 0     #Manejo de excepciones
+
+
+
+
+
+
+            self.fillcc1()
         
-        try:
-        
-            #Carga el archivo cc.txt
-            self.ccs = open("cc.txt", "r+").readlines()
-            self.indice_ultima = len(self.ccs) - 1
-
-            self.webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
-
-            self.__browser221 = webdriver.Chrome('chromedriver', options=self.chrome_options)   #Crea la interfaz con las opciones
-            self.__browser221.get("https://tempm.com/hasevo.com") #Carga la web
-            self.tempmail()  #Extrae datos del mail
-
-            self.__driver = webdriver.Chrome('chromedriver', options=self.chrome_options)   #Crea interfaz con las opciones
-            self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
-            self.nerro = 0          #Contador de errores que se usa en self.error_register()
-            self.registroamazon()    #Se registra en amazon
-
-            self.crearlinea()    #Toma una linea de cc.txt
-
-        except WebDriverException:
-            print(Fore.RED, "Error al conectar a la red")
-        
-
-    #Crea el Email
+   #Crea el Email
     def tempmail(self):
 
         self.__browser221.implicitly_wait(30)  #Espera 30 segundos o hasta que cargue
@@ -62,15 +89,29 @@ class Chek:
         print("CREATING EMAIL  ...")
 
     #Separa los datos de la cc
+
+    def load_cctxt(self):
+        self.ccs = open("cc.txt", "r+").readlines()        
+        self.indice_ultima = len(self.ccs) - 1
+        self.count_cc = self.indice_ultima
+
     def crearlinea(self):
 
         file = [s.rstrip() for s in self.ccs]
+        self.cc = file[self.indice_ultima - self.count_cc].split("|")
+        self.cc1 = self.cc[0]
+        self.mes = self.cc[1] 
+        self.anio = self.cc[2]
+        self.cvv = self.cc[3]
+        self.count_cc -= 1
+
+        ''''
         for lines in file:
             cc = lines.split("|")
             self.cc1 = cc[0]
             self.mes = cc[1] 
             self.anio = cc[2]
-            self.cvv = cc[3]
+            self.cvv = cc[3]'''
 
     def remover_ultima(self):
 
@@ -102,7 +143,7 @@ class Chek:
         timer3 = threading.Timer(3, self.pagar)
         timer3.start()
     def refill(self):
-        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys("Josesito deowowowo")
+        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys("Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
@@ -126,7 +167,7 @@ class Chek:
 
     def fillcc1(self):
         #DATACC
-        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys("Josesito deowowowo")
+        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys("Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
@@ -158,7 +199,9 @@ class Chek:
         self.__driver.find_element(By.CLASS_NAME, 'a-button-input').click()
         self.__browser221.quit()
 
-        WebDriverWait(self.__driver, 120).until(EC.presence_of_element_located((By.ID, "twotabsearchtextbox")))
+        WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
+        self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()
+        self.fillcc1()
         
     def error_register(self):
 
@@ -247,9 +290,13 @@ class Chek:
         self.chrome_options.add_argument("--disable-popup-blocking")
 
 
+    
+
+
+
 #-------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------
 
 # main 
-checker = Chek()
+checker = Chek(False)

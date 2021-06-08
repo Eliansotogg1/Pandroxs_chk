@@ -90,7 +90,7 @@ class Gate_amazon:
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument('--incognito')
         self.chrome_options.add_argument("--window-size=800,600")
-        self.chrome_options.add_argument("--headless")                  #Ocultar navegador
+        #self.chrome_options.add_argument("--headless")                  #Ocultar navegador
         #self.chrome_options.add_argument('--no-sandbox')               #Only linux
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
@@ -159,7 +159,7 @@ class Gate_amazon:
         
         if error == False:
             print(Fore.GREEN, self.correitotemp, Fore.WHITE)
-            mailtxt = open("dominemail.txt", "a+").write("\n ", self.correitotemp)
+            mailtxt = open("dominemail.txt", "a+").write(f"\n {self.correitotemp}")
             mailtxt.close()
             self.__driver.quit()
             self.__browser221.quit()

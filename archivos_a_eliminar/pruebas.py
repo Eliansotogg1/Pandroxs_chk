@@ -127,3 +127,4 @@ except IndexError:
 global a
 print(type(a))'''
 
+'''a = open('dominemail.txt', 'a').write("\n a")'''

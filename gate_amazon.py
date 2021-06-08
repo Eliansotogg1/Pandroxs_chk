@@ -25,9 +25,9 @@ class Gate_amazon:
                 #Cargando ccs
                 self.load_cctxt()
                 self.crearlinea()
-                print(Fore.YELLOW, 'Cargando CCs', Fore.WHITE)
+                print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
 
-                print(Fore.YELLOW, 'Cargando Gate', Fore.WHITE)
+                print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
                 self.webdriver_chromeoptions()
                 #Temp page
                 path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
@@ -38,8 +38,9 @@ class Gate_amazon:
                 #Amazon page
                 self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
                 self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
-                self.registroamazon()    #Se registra en amazon
+                self.load_mailtxt()    #Se registra en amazon
                 print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
+
             except WebDriverException as ex:
                 print(Fore.RED, ex.msg[14:])
         
@@ -127,9 +128,45 @@ class Gate_amazon:
         WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
         self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()
 
-    def registroamazon(self):
+    def load_mailtxt(self):
+        print(Fore.CYAN +"SIGNING UP ACCOUNT ", Fore.WHITE)
+        WebDriverWait(self.__driver, 30).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="createAccountSubmit"]')))
+        #Click para registrarse
+        self.__driver.find_element(By.XPATH, '//*[@id="createAccountSubmit"]').click()
 
-        error = True
+        #Llena el formulario de registro
+        self.__driver.find_element(By.NAME, 'customerName').send_keys(names.get_full_name())
+        self.__driver.find_element(By.NAME, 'email').send_keys(self.correitotemp)
+        self.__driver.find_element(By.NAME, 'password').send_keys("ColombiaSOS2021")
+        self.__driver.find_element(By.NAME, 'passwordCheck').send_keys("ColombiaSOS2021")
+        self.__driver.find_element(By.XPATH, '//*[@id="continue"]').click()
+
+        #espera a que cargue la ventana de captcha
+        self.__driver.implicitly_wait(10)
+        i=0
+        while True:
+            bodyText0 = self.__driver.find_element_by_tag_name('body').text
+            if "Internal Error. Please try again later." in bodyText0:
+                print(Fore.YELLOW + str(i) + " CHANGING EMAIL", Fore.WHITE)
+                i+=1
+                self.__browser221.get("https://tempm.com/email-generator") #Carga la web
+                self.tempmail()  #Extrae datos del mail
+                self.refill_register()
+                error = True
+            else:
+                error = False
+                break
+        
+        if error == False:
+            print(Fore.GREEN, self.correitotemp, Fore.WHITE)
+            mailtxt = open("dominemail.txt", "a+").write("\n ", self.correitotemp)
+            mailtxt.close()
+            self.__driver.quit()
+            self.__browser221.quit()
+            self.__init__()
+
+
+    def registroamazon(self):
 
         print(Fore.CYAN +"SIGNING UP ACCOUNT ", Fore.WHITE)
         WebDriverWait(self.__driver, 30).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="createAccountSubmit"]')))
@@ -149,13 +186,14 @@ class Gate_amazon:
         while True:
             bodyText0 = self.__driver.find_element_by_tag_name('body').text
             if "Internal Error. Please try again later." in bodyText0:
-                print(Fore.RED + str(i) + " CHANGING EMAIL", Fore.WHITE)
+                print(Fore.YELLOW + str(i) + " CHANGING EMAIL", Fore.WHITE)
                 i+=1
                 self.__browser221.get("https://tempm.com/email-generator") #Carga la web
                 self.tempmail()  #Extrae datos del mail
                 self.refill_register()
-            else:
                 error = True
+            else:
+                error = False
                 break
 
         if error == False:

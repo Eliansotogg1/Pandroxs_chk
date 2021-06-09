@@ -28,17 +28,19 @@ class Gate_amazon:
                 print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
 
                 print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
+
+                self.dominemail = 'therebecas.ml'
                 self.webdriver_chromeoptions()
                 #Temp page
                 path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
                 self.__browser221 = webdriver.Chrome(path, options=self.chrome_options)   #Crea la interfaz con las opciones
-                self.__browser221.get("https://tempm.com/hasevo.com") #Carga la web
+                self.__browser221.get(f"https://tempm.com/{self.dominemail}") #Carga la web
                 self.tempmail()  #Extrae datos del mail
 
                 #Amazon page
                 self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
                 self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
-                self.load_mailtxt()    #Se registra en amazon
+                self.registroamazon()    #Se registra en amazon
                 print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
 
             except WebDriverException as ex:
@@ -91,7 +93,7 @@ class Gate_amazon:
         self.chrome_options.add_argument('--incognito')
         self.chrome_options.add_argument("--window-size=800,600")
         #self.chrome_options.add_argument("--headless")                  #Ocultar navegador
-        #self.chrome_options.add_argument('--no-sandbox')               #Only linux
+        self.chrome_options.add_argument('--no-sandbox')               #Only linux
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
 
@@ -106,8 +108,9 @@ class Gate_amazon:
         user_value = user.get_attribute("value")
         domain_value = domain.get_attribute("value")
         self.correitotemp = user_value+"@"+domain_value
+        print(self.correitotemp)
 
-        print(Fore.WHITE ,"CREATING EMAIL...", Fore.WHITE)
+        print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)
 
     def refill_register(self):
         self.__driver.find_element(By.NAME, 'email').clear()
@@ -159,11 +162,11 @@ class Gate_amazon:
         
         if error == False:
             print(Fore.GREEN, self.correitotemp, Fore.WHITE)
-            mailtxt = open("dominemail.txt", "a+").write(f"\n {self.correitotemp}")
+            mailtxt = open("dominemail.txt", "a")
+            mailtxt.write(f"\n{self.correitotemp}")
             mailtxt.close()
             self.__driver.quit()
             self.__browser221.quit()
-            self.__init__()
 
 
     def registroamazon(self):
@@ -182,13 +185,12 @@ class Gate_amazon:
 
         #espera a que cargue la ventana de captcha
         self.__driver.implicitly_wait(10)
-        i=0
-        while True:
+        for i in range(3):
             bodyText0 = self.__driver.find_element_by_tag_name('body').text
             if "Internal Error. Please try again later." in bodyText0:
-                print(Fore.YELLOW + str(i) + " CHANGING EMAIL", Fore.WHITE)
+                print(Fore.YELLOW + str(i) + " ERROR, CHANGING EMAIL", Fore.WHITE)
                 i+=1
-                self.__browser221.get("https://tempm.com/email-generator") #Carga la web
+                self.__browser221.get(f"https://tempm.com/email-generator") #Carga la web
                 self.tempmail()  #Extrae datos del mail
                 self.refill_register()
                 error = True
@@ -199,28 +201,31 @@ class Gate_amazon:
         if error == False:
             print(Fore.GREEN, self.correitotemp, Fore.WHITE)
             # Cambia el foco al iframe
-            self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
-            self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
-            self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
-            # Ahora podemos hacer clic en el botón'
-            self.__driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
-            self.__driver.switch_to.default_content()
-            
-            #Espera respuestas al aceptar el captcha
-            
-            try:
-                print(Fore.BLUE, 'Esperando a que el usuario resuelva el captcha')
-                WebDriverWait(self.__driver, 150).until(EC.presence_of_element_located((By.ID, "cvf-input-code")))
-            except:
-                error = True
+            self.__driver.implicitly_wait(10)
+            bodyText0 = self.__driver.find_element_by_tag_name('body').text
+            if "Solve this puzzle to protect your account" in bodyText0:
+                self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
+                self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
+                self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
+                # Ahora podemos hacer clic en el botón'
+                self.__driver.find_element(By.XPATH, '//*[@id="home_children_button"]').click()
+                self.__driver.switch_to.default_content()
+                
+                #Espera respuestas al aceptar el captcha
+                try:
+                    print(Fore.BLUE, 'WAITING TO THE USER SOLVE THE CAPTCHA')
+                    WebDriverWait(self.__driver, 150).until(EC.presence_of_element_located((By.ID, "cvf-input-code")))
+                except:
+                    error = True
 
-            if error == False:
-                print(Fore.BLUE, 'Esperando el OTP', Fore.WHITE)
+                if error == False:
+                    print(Fore.BLUE, 'Esperando el OTP', Fore.WHITE)
+                else:
+                    print(Fore.RED, 'Captcha no resuelto', Fore.WHITE)
             else:
-                print(Fore.RED, 'Captcha no resuelto', Fore.WHITE)
-
+                print(Fore.RED, 'Error al cargar el captcha')
         else:
-            print(Fore.RED, 'Error al crear la cuenta', Fore.WHITE)
+            print(Fore.RED, 'Error al crear la cuenta (mail)', Fore.WHITE)
 
         
 '''

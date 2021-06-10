@@ -29,7 +29,7 @@ class Gate_amazon:
 
                 print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
 
-                self.dominemail = 'therebecas.ml'
+                self.dominemail = 'docsv.site'
                 self.webdriver_chromeoptions()
                 #Temp page
                 path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
@@ -39,8 +39,8 @@ class Gate_amazon:
 
                 #Amazon page
                 self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
-                self.__driver.get("https://www.amazon.sg/gp/prime/pipeline/membersignup")  #Carga la web 
-                self.registroamazon()    #Se registra en amazon
+                self.__driver.get("https://www.amazon.it/gp/prime/pipeline/membersignup")  #Carga la web 
+                self.load_mailtxt()    #Se registra en amazon
                 print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
 
             except WebDriverException as ex:
@@ -53,7 +53,7 @@ class Gate_amazon:
             self.webdriver_chromeoptions()
             path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
             self.__driver = webdriver.Chrome(path, options=self.chrome_options)
-            self.__driver.get('https://www.amazon.sg/gp/prime/pipeline/membersignup')
+            self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
             self.__driver.find_element(By.ID, 'ap_email').send_keys('3132121715')
             self.__driver.find_element(By.ID, 'ap_password').send_keys('Elian123')
             self.__driver.find_element(By.ID, 'signInSubmit').click()
@@ -92,7 +92,7 @@ class Gate_amazon:
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument('--incognito')
         self.chrome_options.add_argument("--window-size=800,600")
-        #self.chrome_options.add_argument("--headless")                  #Ocultar navegador
+        self.chrome_options.add_argument("--headless")                  #Ocultar navegador
         self.chrome_options.add_argument('--no-sandbox')               #Only linux
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
@@ -108,7 +108,6 @@ class Gate_amazon:
         user_value = user.get_attribute("value")
         domain_value = domain.get_attribute("value")
         self.correitotemp = user_value+"@"+domain_value
-        print(self.correitotemp)
 
         print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)
 
@@ -149,7 +148,7 @@ class Gate_amazon:
         i=0
         while True:
             bodyText0 = self.__driver.find_element_by_tag_name('body').text
-            if "Internal Error. Please try again later." in bodyText0:
+            if "Errore interno. Riprova più tardi" in bodyText0:
                 print(Fore.YELLOW + str(i) + " CHANGING EMAIL", Fore.WHITE)
                 i+=1
                 self.__browser221.get("https://tempm.com/email-generator") #Carga la web
@@ -187,7 +186,7 @@ class Gate_amazon:
         self.__driver.implicitly_wait(10)
         for i in range(3):
             bodyText0 = self.__driver.find_element_by_tag_name('body').text
-            if "Internal Error. Please try again later." in bodyText0:
+            if "Errore interno. Riprova più tardi" in bodyText0:
                 print(Fore.YELLOW + str(i) + " ERROR, CHANGING EMAIL", Fore.WHITE)
                 i+=1
                 self.__browser221.get(f"https://tempm.com/email-generator") #Carga la web
@@ -203,7 +202,7 @@ class Gate_amazon:
             # Cambia el foco al iframe
             self.__driver.implicitly_wait(10)
             bodyText0 = self.__driver.find_element_by_tag_name('body').text
-            if "Solve this puzzle to protect your account" in bodyText0:
+            if "Risolvi questo puzzle per proteggere il tuo account" in bodyText0:
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="cvf-arkose-frame"]'))     #Primer frame
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="fc-iframe-wrap"]'))       #Segundo frame
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath('//*[@id="CaptchaFrame"]'))         #Tercer frame
@@ -219,7 +218,18 @@ class Gate_amazon:
                     error = True
 
                 if error == False:
-                    print(Fore.BLUE, 'Esperando el OTP', Fore.WHITE)
+                    print(Fore.BLUE, 'WAITING OTP', Fore.WHITE)
+                    try:
+                        self.otpcode()
+                    except:
+                        error = True
+
+                    if error == False:
+                        WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
+                        self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()
+                    else:
+                        print(Fore.RED, 'OTP ERROR')
+
                 else:
                     print(Fore.RED, 'Captcha no resuelto', Fore.WHITE)
             else:

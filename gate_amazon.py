@@ -1,4 +1,6 @@
+from logging import exception
 from selenium import webdriver
+from selenium.webdriver.common import by
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -7,6 +9,8 @@ from time import sleep, time
 from notify_run import Notify
 from colorama import *
 from playsound import playsound
+from string import ascii_letters
+from random import choice, randint
 import threading
 import random
 import names
@@ -29,18 +33,24 @@ class Gate_amazon:
 
                 print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
 
-                self.dominemail = 'docsv.site'
+                self.dominemail = ''
                 self.webdriver_chromeoptions()
                 #Temp page
                 path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
                 self.__browser221 = webdriver.Chrome(path, options=self.chrome_options)   #Crea la interfaz con las opciones
-                self.__browser221.get(f"https://tempm.com/{self.dominemail}") #Carga la web
-                self.tempmail()  #Extrae datos del mail
+                
+                #self.__browser221.get(f"https://tempm.com/{self.dominemail}") #Carga la web
+                #self.tempmail()  #Extrae datos del mail
+
+                
+                self.__browser221.get('https://embedded.cryptogmail.com/')
+                self.crypto_mail()
 
                 #Amazon page
                 self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
                 self.__driver.get("https://www.amazon.it/gp/prime/pipeline/membersignup")  #Carga la web 
-                self.load_mailtxt()    #Se registra en amazon
+                self.registroamazon()    #Se registra en amazon
+                #self.load_mailtxt()
                 print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
 
             except WebDriverException as ex:
@@ -92,24 +102,38 @@ class Gate_amazon:
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument('--incognito')
         self.chrome_options.add_argument("--window-size=800,600")
-        self.chrome_options.add_argument("--headless")                  #Ocultar navegador
+        #self.chrome_options.add_argument("--headless")                  #Ocultar navegador
         self.chrome_options.add_argument('--no-sandbox')               #Only linux
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
 
-        self.chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        #self.chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    
+    def crypto_mail(self):
+
+        print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)                                   
+        WebDriverWait(self.__browser221, 30).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div[1]/div/div[1]/div')))
+        #self.__browser221.implicitly_wait(30)  #Espera 30 segundos o hasta que cargue
+        sleep(1)
+        self.__browser221.find_element_by_xpath("/html/body/div/div[1]/div/div[2]/a[3]").click()
+        user = ''.join(choice(ascii_letters) + str(randint(0, 9)) for i in range(15))
+        sleep(4)
+        self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input').send_keys(user)
+        self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/a').click()
+
+        WebDriverWait(self.__browser221, 15).until(EC.presence_of_element_located((By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/a')))
+        mail = self.__browser221.find_element_by_xpath('/html/body/div/div[1]/div/div[1]/div')
+        self.correitotemp = mail.text
+
     def tempmail(self):
 
+        print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)
         self.__browser221.implicitly_wait(30)  #Espera 30 segundos o hasta que cargue
         user = self.__browser221.find_element_by_id("userName")
         domain = self.__browser221.find_element_by_id('domainName2')
         user_value = user.get_attribute("value")
         domain_value = domain.get_attribute("value")
         self.correitotemp = user_value+"@"+domain_value
-
-        print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)
 
     def refill_register(self):
         self.__driver.find_element(By.NAME, 'email').clear()
@@ -118,17 +142,31 @@ class Gate_amazon:
         self.__driver.find_element(By.NAME, 'passwordCheck').send_keys("ColombiaSOS2021")
         self.__driver.find_element(By.XPATH, '//*[@id="continue"]').click()
 
-    def otpcode(self):
-        
+    def optcode_cryto(self):
+                                                                                        #'.//iframe[contains(@name,'ApxSecureIframe')]
+        WebDriverWait(self.__browser221, 30).until(EC.element_to_be_clickable((By.XPATH, ".//div[contains(@onclick, '_temp_mail.openEmail')]")))
+        self.__browser221.find_element(By.XPATH, ".//div[contains(@onclick, '_temp_mail.openEmail')]").click()
+        print("Abrio")
+        WebDriverWait(self.__browser221, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'otp')))
         codiguito = self.__browser221.find_element_by_class_name("otp")
+        print("Encontro otp")
         codiguito2 = codiguito.text
-        print(Fore.CYAN +"OTP SOLVED: ", Fore.WHITE)
+        print(codiguito)
         self.__driver.find_element(By.NAME, 'code').send_keys(codiguito2)
         self.__driver.find_element(By.CLASS_NAME, 'a-button-input').click()
         self.__browser221.quit()
 
-        WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
-        self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()
+    def otpcode_tempm(self):
+        
+        self.__browser221.refresh()
+        codiguito = self.__browser221.find_element_by_class_name("otp")
+        codiguito2 = codiguito.text
+        self.__driver.find_element(By.NAME, 'code').send_keys(codiguito2)
+        self.__driver.find_element(By.CLASS_NAME, 'a-button-input').click()
+        self.__browser221.quit()
+
+        '''WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
+        self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()'''
 
     def load_mailtxt(self):
         print(Fore.CYAN +"SIGNING UP ACCOUNT ", Fore.WHITE)
@@ -189,8 +227,11 @@ class Gate_amazon:
             if "Errore interno. Riprova più tardi" in bodyText0:
                 print(Fore.YELLOW + str(i) + " ERROR, CHANGING EMAIL", Fore.WHITE)
                 i+=1
-                self.__browser221.get(f"https://tempm.com/email-generator") #Carga la web
-                self.tempmail()  #Extrae datos del mail
+                #self.__browser221.get(f"https://tempm.com/email-generator")
+                #self.tempmail()  #Extrae datos del mail
+                
+                self.__browser221.get('https://embedded.cryptogmail.com/')
+                self.crypto_mail()
                 self.refill_register()
                 error = True
             else:
@@ -220,13 +261,15 @@ class Gate_amazon:
                 if error == False:
                     print(Fore.BLUE, 'WAITING OTP', Fore.WHITE)
                     try:
-                        self.otpcode()
+                        self.optcode_cryto()
                     except:
                         error = True
 
                     if error == False:
-                        WebDriverWait(self.__driver, 30).until(EC.presence_of_element_located((By.ID, "pp-nex5Ut-43")))
-                        self.__driver.find_element(By.ID, 'pp-nex5Ut-43').click()
+                        
+                        print(Fore.CYAN +"OTP SOLVED", Fore.WHITE)
+                        WebDriverWait(self.__driver, 120).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Add a credit or debit card')))
+                    
                     else:
                         print(Fore.RED, 'OTP ERROR')
 

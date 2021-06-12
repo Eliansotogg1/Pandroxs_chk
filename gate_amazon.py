@@ -24,7 +24,7 @@ class Gate_amazon:
         if status == True:
             try:
                 init()
-                #sys.tracebacklimit = 0     #Manejo de excepcioneswa
+                sys.tracebacklimit = 0     #Manejo de excepcioneswa
                 now = time()
                 #Cargando ccs
                 self.load_cctxt()
@@ -62,18 +62,26 @@ class Gate_amazon:
                     self.__driver.delete_all_cookies()
                     self.__driver.find_element(By.ID, 'sp-cc-accept').click()
                     self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-                    sleep(2)
+                    #sleep(2)
+                    WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                     self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
 
                 print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
 
             except WebDriverException as ex:
-                print(Fore.RED, ex.msg[14:])
+                print(Fore.RED, ex.msg[14:], Fore.WHITE)
         
         else:
+            
+            init()
+            #sys.tracebacklimit = 0     #Manejo de excepcioneswa
+            now = time()
+            #Cargando ccs
             self.load_cctxt()
             self.crearlinea()
+            print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
+            print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
 
             self.webdriver_chromeoptions()
             path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
@@ -87,12 +95,28 @@ class Gate_amazon:
             error = False
             try:
                 self.__driver.find_element(By.ID, 'sp-cc-accept').click()
+            except:
+                pass
             finally:
-                self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-                sleep(2)
+                try:
+                    self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
+                except NoSuchElementException:
+                    print(Fore.RED, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
+                    self.delete_data()
+                    self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
+                    sleep(2)
+                    self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
+                
+                #sleep(2)
+                WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
                 self.fillcc1()
+                if self.finish == True:
+                    print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
+                    self.delete_data()
+                    self.__driver.quit()
+                
             
     def load_cctxt(self):
         self.ccs = open("cc.txt", "r+").readlines()        
@@ -102,7 +126,8 @@ class Gate_amazon:
     def crearlinea(self):
 
         file = [s.rstrip() for s in self.ccs]
-        self.cc = file[self.indice_ultima - self.count_cc].split("|")
+        self.index_cc = self.indice_ultima - self.count_cc
+        self.cc = file[self.index_cc].split("|")
         self.cc1 = self.cc[0]
         self.mes = self.cc[1] 
         self.anio = self.cc[2]
@@ -125,17 +150,19 @@ class Gate_amazon:
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
 
-        #self.chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        self.chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
     def crypto_mail(self):
 
         print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)                                   
         WebDriverWait(self.__browser221, 30).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div[1]/div/div[1]/div')))
         #self.__browser221.implicitly_wait(30)  #Espera 30 segundos o hasta que cargue
-        sleep(1)
+        #sleep(1)
+        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div[1]/div/div[2]/a[3]")))
         self.__browser221.find_element_by_xpath("/html/body/div/div[1]/div/div[2]/a[3]").click()
         user = ''.join(choice(ascii_letters) + str(randint(0, 9)) for i in range(15))
-        sleep(4)
+        #sleep(4)
+        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input')))
         self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input').send_keys(user)
         self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/a').click()
 
@@ -286,25 +313,28 @@ class Gate_amazon:
                         print(Fore.CYAN +"OTP SOLVED", Fore.WHITE)
                         return True                     
                     else:
-                        print(Fore.RED, 'OTP ERROR')
+                        print(Fore.RED, 'OTP ERROR', Fore.WHITE)
                         return False
 
                 else:
                     print(Fore.RED, 'Captcha no resuelto', Fore.WHITE)
             else:
-                print(Fore.RED, 'Error al cargar el captcha')
+                print(Fore.RED, 'Error al cargar el captcha', Fore.WHITE)
         else:
             print(Fore.RED, 'Error al crear la cuenta (mail)', Fore.WHITE)
 
     def buttonsfill(self):
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:SelectAddressEvent').click()
-        sleep(3)
+        #sleep(6)
+        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]"))))                 
+        self.__driver.find_element(By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]")).click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:PreferencePaymentOptionSelectionEvent').click()
         timer3 = threading.Timer(3, self.pagar)
         timer3.start()
 
+
     def refill(self):
-        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys("Pandorita Quintana")
+        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"{self.index_cc}Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
@@ -313,11 +343,15 @@ class Gate_amazon:
         timer5.start()
 
     def recheck(self):
-        sleep(2)                               
+
+        #sleep(2)
+        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[2]/div[2]/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input")))                               
         self.__driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[2]/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input").click()
-        sleep(2)
+        #sleep(2)
+        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Aggiungi una carta di credito o di debito')))
         self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-        sleep(2)
+        #sleep(2)
+        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
         self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
         timer4 = threading.Timer(2, self.refill)
@@ -327,41 +361,40 @@ class Gate_amazon:
         print(Fore.BLUE, 'CHECKING...', Fore.WHITE)
         
         bodyText = self.__driver.find_element_by_tag_name('body').text
+        
         if "Si è verificato un errore durante la convalida del metodo di pagamento. Aggiorna o aggiungi un nuovo metodo di pagamento e riprova." in bodyText:
-            print(Fore.RED + " DEAD " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
-            self.crearlinea()
-            timer2 = threading.Timer(4, self.recheck)
-            timer2.start()
-        elif "You can now enjoy FREE delivery on millions of Prime eligible items, stream thousands of movies and TV episodes on Prime Video, get free in game content with Prime Gaming and more." in bodyText:
-            
-            self.__driver.quit()
-            self.webdriver_chromeoptions()
-            path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
-            self.__driver = webdriver.Chrome(path, options=self.chrome_options)
-            self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
-            self.__driver.find_element(By.ID, 'ap_email').send_keys(self.correitotemp)
-            self.__driver.find_element(By.ID, 'ap_password').send_keys('ColombiaSOS2021')
-            self.__driver.find_element(By.ID, 'signInSubmit').click()
-            
-            ms = self.__driver.find_element(By.TAG_NAME, 'body').text
-            if 'Account on hold temporarily' in ms:
-                print(Fore.RED, 'Cuenta baneada')
-            else:
-                playsound('HIT.wav')
-                print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
-                notify = Notify()
-                notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv) 
+            print(Fore.RED, " DEAD " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv, Fore.WHITE)
+            try:
+                self.crearlinea()
+                timer2 = threading.Timer(4, self.recheck)
+                timer2.start()
+            except IndexError:
+                print(Fore.LIGHTGREEN_EX, 'CHECKOUT COMPLETED', Fore.WHITE)
+                self.finish = True
+        elif "Siamo spiacenti, ma solo i clienti con un indirizzo di fatturazione italiano possono iscriversi a Prime su Amazon.it" in bodyText:
+            playsound('HIT.wav')
+            print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
+            notify = Notify()
+            notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv)
+            try:
+                self.crearlinea()
+                timer2 = threading.Timer(4, self.recheck)
+                timer2.start()
+            except IndexError:
+                print(Fore.LIGHTGREEN_EX, 'CHECKOUT COMPLETED', Fore.WHITE)
             
     def pagar(self):               
         
         print(Fore.BLUE, 'BUYING PRIME...', Fore.WHITE)
         try:
-            sleep(2)
+            #sleep(2)
+            WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
             self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
         except:
             pass
         finally:
-            sleep(2)
+            #sleep(4)
+            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[4]/div/div/div[1]/div/span/span/span')))
             self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[4]/div/div/div[1]/div/span/span/span').click()
             timer1 = threading.Timer(4, self.verificar)     
             timer1.start()
@@ -370,27 +403,69 @@ class Gate_amazon:
         #DATA ADRESS AND PAY
         print(Fore.BLUE + "ADDING ADDRESS", Fore.WHITE)
 
-        self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("Via dei Monti Tiburtini, 623")
-        self.__driver.find_element(By.NAME, 'ppw-city').send_keys("Roma")
-        self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("Roma")
-        self.__driver.find_element(By.NAME, 'ppw-postalCode').send_keys("Roma")
-        self.__driver.find_element(By.NAME, 'ppw-phoneNumber').send_keys("064500210")
+        self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("20 Wyckoff Ave")
+        self.__driver.find_element(By.NAME, 'ppw-city').send_keys("New York")
+        self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("NY")
+        self.__driver.find_element(By.NAME, 'ppw-postalCode').send_keys("07463")
+        self.__driver.find_element(By.NAME, 'ppw-phoneNumber').send_keys("2014478300")
+        self.__driver.find_element(By.NAME, 'ppw-countryCode').send_keys("Stati Uniti")
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
         
         sleep(2)
+        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent')))
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent').click()
         self.pagar()
 
     def fillcc1(self):
         #DATACC
-        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys("Pandorita Quintana")
+        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located(((By.NAME, 'ppw-accountHolderName'))))
+        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"{self.index_cc}Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
+        self.__driver.find_element(By.NAME, 'ppw-updateEverywhereAddCreditCard').click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
         print(Fore.BLUE +"ADDING CC", Fore.WHITE)
         timer7 = threading.Timer(3, self.filladress)
         timer7.start()
+        return True
+
+    def delete_data(self):
+        self.load_cctxt()
+        self.crearlinea()
+        try:
+            self.__driver.get('https://www.amazon.it/a/addresses?ref_=ya_d_c_addr')
+            WebDriverWait(self.__driver, 5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="ya-myab-edit-address-desktop-row-0"]/span')))
+            self.__driver.find_element(By.XPATH, '//*[@id="ya-myab-edit-address-desktop-row-0"]/span').click()
+            sleep(1)
+            self.__driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div/div[4]/div[2]/div/div[2]/form/span/span/input').click()
+            sleep(2)
+        except:
+            print(Fore.RED, 'ADRESS DONT FOUND', Fore.WHITE)
+
+        try:
+            self.__driver.get('https://www.amazon.it/cpe/yourpayments/wallet?ref_=ya_d_c_pmt_mpo')
+            sleep(1)
+            for i in range(self.indice_ultima):
+                try:
+                    sleep(2)
+                    self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/a').click()
+                    self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/div/div[3]/div[2]/span[2]/span/input').click()
+                    sleep(3)
+                    self.__driver.find_element(By.NAME, 'ppw-widgetEvent:DeleteInstrumentEvent').click()
+                    sleep(3)
+                    self.__driver.refresh()
+                except:
+                    print(Fore.RED, 'CCs DELETEDS', Fore.WHITE)
+                    break
+        finally:
+            print(Fore.RED, 'CCs DONT FOUND', Fore.WHITE)
+
+
+
+
+
+
 
 
 

@@ -128,9 +128,16 @@ global a
 print(type(a))'''
 
 '''a = open('dominemail.txt', 'a').write("\n a")'''
-
+'''
 import random
 import string
 
 user = ''.join(random.choice(string.ascii_letters) + str(random.randint(0, 9)) for i in range(15))
-print(user)
+print(user)'''
+'''
+a = "3Pandorita Quintana"
+b = "2Pandorita Quintana"
+print(a<b)'''
+
+a = "1234567890"
+print(a[len(a)-4:])

@@ -382,12 +382,14 @@ class Gate_amazon:
             notify = Notify()
             notify.register()
             notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv)
+            self.guardar_live()
             try:
                 self.crearlinea()
                 timer2 = threading.Timer(0, self.recheck)
                 timer2.start()
             except IndexError:
                 print(Fore.LIGHTGREEN_EX, 'CHECKOUT COMPLETED', Fore.WHITE)
+                self.finish = True
         
         
             

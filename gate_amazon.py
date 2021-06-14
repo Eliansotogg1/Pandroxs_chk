@@ -116,7 +116,7 @@ class Gate_amazon:
                 while True:
                     try:
                         if self.finish == True:
-                            print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now))
+                            print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
                             self.delete_data()
                             self.__driver.quit()
                             break
@@ -359,7 +359,7 @@ class Gate_amazon:
 
     def guardar_live(self):
         live_cc = open("lives.txt", "a")
-        live_cc.write(self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv)
+        live_cc.write('\n'+self.cc1+"|"+self.mes+"|"+self.anio+"|"+self.cvv)
         live_cc.close()
 
     def verificar(self):

@@ -1,3 +1,4 @@
+from copy import error
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -96,25 +97,26 @@ class Gate_amazon:
             except:
                 pass
             finally:
-                try:
-                    self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-                except NoSuchElementException:
-                    print(Fore.YELLOW, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
-                    self.delete_data()
-                    self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
-                    self.__driver.implicitly_wait(2)
-                    self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-                
+                while True:
+                    try:
+                        self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
+                        break
+                    except NoSuchElementException:
+                        print(Fore.YELLOW, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
+                        self.delete_data()
+                        self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
+                        self.__driver.implicitly_wait(2)
+                    
                 
                 WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
-                timer0 = threading.Timer(1, self.fillcc1())
+                timer0 = threading.Timer(0, self.fillcc1())
                 timer0.start()
                 while True:
                     try:
                         if self.finish == True:
-                            print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
+                            print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
                             self.delete_data()
                             self.__driver.quit()
                             break
@@ -137,7 +139,6 @@ class Gate_amazon:
             ccs.close()
 
     def crearlinea(self):
-
         file = [s.rstrip() for s in self.ccs]
         self.index_cc = self.indice_ultima - self.count_cc
         self.cc = file[self.index_cc].split("|")
@@ -146,6 +147,7 @@ class Gate_amazon:
         self.anio = self.cc[2]
         self.cvv = self.cc[3]
         self.count_cc -= 1
+        
 
     def delete_line(self):
         a_file = open("cc_account.txt", "r") 
@@ -346,7 +348,12 @@ class Gate_amazon:
     def buttonsfill(self):
         WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:SelectAddressEvent')))
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:SelectAddressEvent').click()
-        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]"))))                 
+        while True:
+            try:
+                WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]"))))
+                break
+            except NoSuchWindowException:
+                pass
         self.__driver.find_element(By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]")).click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:PreferencePaymentOptionSelectionEvent').click()
         timer3 = threading.Timer(0, self.pagar)
@@ -354,14 +361,41 @@ class Gate_amazon:
 
 
     def refill(self):
-        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-accountHolderName')))
+
+        error = False
+        while True:
+            try:
+                WebDriverWait(self.__driver, 2).until(EC.visibility_of_element_located((By.NAME, 'ppw-accountHolderName')))
+                break
+            except NoSuchWindowException:
+                pass
         self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"{self.index_cc}Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
+        self.__driver.find_element(By.NAME, 'ppw-updateEverywhereAddCreditCard').click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
-        timer5 = threading.Timer(0, self.buttonsfill)
-        timer5.start()
+        try:
+            WebDriverWait(self.__driver, 5).until(EC.presence_of_element_located((By.LINK_TEXT, 'Si è verificato un problema.')))
+            error = True
+        except:
+            error = False
+        
+        if error == False:
+            print(Fore.BLUE +"ADDING CC", Fore.WHITE)
+            timer5 = threading.Timer(0, self.buttonsfill)
+            timer5.start()
+        else:
+            self.__driver.find_element(By.NAME, 'ppw-accountHolderName').clear()
+            self.__driver.find_element(By.NAME, 'addCreditCardNumber').clear()
+            try:
+                self.crearlinea()
+                timer0 = threading.Timer(0, self.refill())
+                timer0.start()
+                print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
+            except:
+                pass
+                   
 
     def recheck(self):
         
@@ -406,7 +440,7 @@ class Gate_amazon:
             self.guardar_live()
             self.save_cc_account()
             playsound(os.path.realpath('mario_live.wav'))
-            print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
+            print(Fore.GREEN + " PXNDORXS_CHK LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv, Fore.WHITE)
             notify = Notify()
             notify.register()
             notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv)
@@ -423,53 +457,75 @@ class Gate_amazon:
     def pagar(self):               
         
         print(Fore.BLUE, 'BUYING PRIME...', Fore.WHITE)
-        
-        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[4]/div/div/div[1]/div/span/span/span')))
+        while True:
+            try:
+                WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[4]/div/div/div[1]/div/span/span/span')))
+                break
+            except NoSuchWindowException:
+                pass
         self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[4]/div/div/div[1]/div/span/span/span').click()
         timer1 = threading.Timer(4, self.verificar)     
         timer1.start()
 
     def filladress(self):
         #DATA ADRESS AND PAY
-        self.finish = False
+        error = False
         print(Fore.BLUE + "ADDING ADDRESS", Fore.WHITE)
-        try:
-            WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
-        except:
-            self.finish = True
-
-        if self.finish != True:
-            self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("20 Wyckoff Ave")
-            self.__driver.find_element(By.NAME, 'ppw-city').send_keys("New York")
-            self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("NY")
-            self.__driver.find_element(By.NAME, 'ppw-postalCode').send_keys("07463")
-            self.__driver.find_element(By.NAME, 'ppw-phoneNumber').send_keys("2014478300")
-            self.__driver.find_element(By.NAME, 'ppw-countryCode').send_keys("Stati Uniti")
-            self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
+        
+        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
+        
+        self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("20 Wyckoff Ave")
+        self.__driver.find_element(By.NAME, 'ppw-city').send_keys("New York")
+        self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("NY")
+        self.__driver.find_element(By.NAME, 'ppw-postalCode').send_keys("07463")
+        self.__driver.find_element(By.NAME, 'ppw-phoneNumber').send_keys("2014478300")
+        self.__driver.find_element(By.NAME, 'ppw-countryCode').send_keys("Stati Uniti")
+        self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
+        
+        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent')))
+        self.__driver.find_element(By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent').click()
+        self.pagar()
             
-            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent')))
-            self.__driver.find_element(By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent').click()
-            self.pagar()
-        else:
-            print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
+            
         
 
     def fillcc1(self):
         #DATACC
-        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located(((By.NAME, 'ppw-accountHolderName'))))
+        while True:
+            try:
+                WebDriverWait(self.__driver, 2).until(EC.visibility_of_element_located(((By.NAME, 'ppw-accountHolderName'))))
+                break
+            except NoSuchWindowException:
+                pass
         self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"{self.index_cc}Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
         self.__driver.find_element(By.NAME, 'ppw-updateEverywhereAddCreditCard').click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
-        print(Fore.BLUE +"ADDING CC", Fore.WHITE)
-        timer7 = threading.Timer(0, self.filladress)
-        timer7.start()
+        while True:
+            try:
+                WebDriverWait(self.__driver, 1).until(EC.presence_of_element_located((By.LINK_TEXT, 'Si è verificato un problema.')))   
+                error = False
+            except:
+                error = True
         
+        if error == True:
+            print(Fore.BLUE +"ADDING CC", Fore.WHITE)
+            timer7 = threading.Timer(0, self.filladress)
+            timer7.start()
+        else:
+            self.__driver.find_element(By.NAME, 'ppw-accountHolderName').clear()
+            self.__driver.find_element(By.NAME, 'addCreditCardNumber').clear()
+            self.crearlinea()
+            timer0 = threading.Timer(0, self.fillcc1())
+            timer0.start()
+            print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
+
+
+
+
     def delete_data(self):
-        #self.load_cctxt('d')
-        #self.crearlinea()
         print(Fore.BLUE, 'DELETE USER DATA', Fore.WHITE)
         try:
             self.__driver.get('https://www.amazon.it/a/addresses?ref_=ya_d_c_addr')
@@ -484,7 +540,7 @@ class Gate_amazon:
         try:
             self.__driver.get('https://www.amazon.it/cpe/yourpayments/wallet?ref_=ya_d_c_pmt_mpo')
             sleep(1)
-            for i in range(self.indice_ultima):
+            while True: 
                 try:
                     sleep(2)
                     self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/a').click()

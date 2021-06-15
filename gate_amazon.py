@@ -27,7 +27,7 @@ class Gate_amazon:
                 sys.tracebacklimit = 0     #Manejo de excepcioneswa
                 now = time()
                 #Cargando ccs
-                self.load_cctxt()
+                self.load_cctxt('a')
                 self.crearlinea()
                 print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
 
@@ -79,7 +79,7 @@ class Gate_amazon:
             #sys.tracebacklimit = 0     #Manejo de excepcioneswa
             now = time()
             #Cargando ccs
-            self.load_cctxt()
+            self.load_cctxt('a')
             self.crearlinea()
             print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
             print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
@@ -102,17 +102,18 @@ class Gate_amazon:
                 try:
                     self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
                 except NoSuchElementException:
-                    print(Fore.RED, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
+                    print(Fore.YELLOW, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
                     self.delete_data()
                     self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
-                    sleep(2)
+                    self.__driver.implicitly_wait(2)
                     self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
                 
                 
                 WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
-                self.fillcc1()
+                timer0 = threading.Timer(0, self.fillcc1())
+                timer0.start()
                 while True:
                     try:
                         if self.finish == True:
@@ -123,11 +124,20 @@ class Gate_amazon:
                     except:
                         pass
                 
-            
-    def load_cctxt(self):
-        self.ccs = open("cc.txt", "r+").readlines()        
-        self.indice_ultima = len(self.ccs) 
-        self.count_cc = self.indice_ultima
+    def load_cctxt(self, e):
+        if e == 'a':
+            ccs = open("cc.txt", "r+")
+            self.ccs = ccs.readlines()        
+            self.indice_ultima = len(self.ccs) 
+            self.count_cc = self.indice_ultima
+            ccs.close()
+
+        elif e == 'd':
+            ccs = open("cc.txt", "r+")
+            self.ccs = ccs.readlines()        
+            self.indice_ultima = len(self.ccs) 
+            self.count_cc = self.indice_ultima
+            ccs.close()
 
     def crearlinea(self):
 
@@ -140,6 +150,16 @@ class Gate_amazon:
         self.cvv = self.cc[3]
         self.count_cc -= 1
 
+    def delete_line(self):
+        a_file = open("cc_account.txt", "r") 
+        lines = a_file.readlines()
+        a_file. close()
+        new_file = open("sample.txt", "w+") 
+        for line in lines:
+            if line.strip() != (self.cc1+"|"+self.mes+"|"+self.anio+"|"+self.cvv):
+                new_file.write(line)
+        new_file. close()        
+
     def webdriver_chromeoptions(self):
         #Inica el API WEBDRIVER CHROME para ajustar las opciones
         self.chrome_options = webdriver.ChromeOptions()
@@ -151,7 +171,7 @@ class Gate_amazon:
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument('--incognito')
         self.chrome_options.add_argument("--window-size=800,600")
-        self.chrome_options.add_argument("--headless")                  #Ocultar navegador
+        #self.chrome_options.add_argument("--headless")                  #Ocultar navegador
         self.chrome_options.add_argument('--no-sandbox')               #Only linux
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
@@ -315,13 +335,16 @@ class Gate_amazon:
                     else:
                         print(Fore.RED, 'OTP ERROR', Fore.WHITE)
                         return False
-
+                        self.finish = True
                 else:
                     print(Fore.RED, 'Captcha no resuelto', Fore.WHITE)
+                    self.finish = True
             else:
                 print(Fore.RED, 'Error al cargar el captcha', Fore.WHITE)
+                self.finish = True
         else:
             print(Fore.RED, 'Error al crear la cuenta (mail)', Fore.WHITE)
+            self.finish = True
 
     def buttonsfill(self):
         WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:SelectAddressEvent')))
@@ -362,6 +385,11 @@ class Gate_amazon:
         live_cc.write('\n'+self.cc1+"|"+self.mes+"|"+self.anio+"|"+self.cvv)
         live_cc.close()
 
+    def save_cc_account(self):
+        cc = open("cc_account.txt", "a")
+        cc.write('\n'+self.cc1+"|"+self.mes+"|"+self.anio+"|"+self.cvv)
+        cc.close()
+
     def verificar(self):
         print(Fore.BLUE, 'CHECKING...', Fore.WHITE)
         WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="a-page"]/div[1]')))
@@ -369,6 +397,7 @@ class Gate_amazon:
         
         if "Si è verificato un errore durante la convalida del metodo di pagamento. Aggiorna o aggiungi un nuovo metodo di pagamento e riprova." in bodyText:
             print(Fore.RED, (self.indice_ultima-self.count_cc), " DEAD " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv, Fore.WHITE)
+            self.save_cc_account()
             try:
                 self.crearlinea()
                 timer2 = threading.Timer(0, self.recheck)
@@ -377,12 +406,13 @@ class Gate_amazon:
                 print(Fore.LIGHTGREEN_EX, 'CHECKOUT COMPLETED', Fore.WHITE)
                 self.finish = True
         elif "Siamo spiacenti, ma solo i clienti con un indirizzo di fatturazione italiano possono iscriversi a Prime su Amazon.it" in bodyText:
-            print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
+            self.guardar_live()
+            self.save_cc_account()
             playsound(os.path.realpath('mario_live.wav'))
+            print(Fore.GREEN + " LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv )
             notify = Notify()
             notify.register()
             notify.send(" LIVE " + self.cc1 +"|"+ self.mes +"|"+self.anio +"|" + self.cvv)
-            self.guardar_live()
             try:
                 self.crearlinea()
                 timer2 = threading.Timer(0, self.recheck)
@@ -405,19 +435,24 @@ class Gate_amazon:
     def filladress(self):
         #DATA ADRESS AND PAY
         print(Fore.BLUE + "ADDING ADDRESS", Fore.WHITE)
-        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
-        self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("20 Wyckoff Ave")
-        self.__driver.find_element(By.NAME, 'ppw-city').send_keys("New York")
-        self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("NY")
-        self.__driver.find_element(By.NAME, 'ppw-postalCode').send_keys("07463")
-        self.__driver.find_element(By.NAME, 'ppw-phoneNumber').send_keys("2014478300")
-        self.__driver.find_element(By.NAME, 'ppw-countryCode').send_keys("Stati Uniti")
-        self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
+        try:
+            WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
+            self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("20 Wyckoff Ave")
+            self.__driver.find_element(By.NAME, 'ppw-city').send_keys("New York")
+            self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("NY")
+            self.__driver.find_element(By.NAME, 'ppw-postalCode').send_keys("07463")
+            self.__driver.find_element(By.NAME, 'ppw-phoneNumber').send_keys("2014478300")
+            self.__driver.find_element(By.NAME, 'ppw-countryCode').send_keys("Stati Uniti")
+            self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddAddressEvent').click()
+            
+            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent')))
+            self.__driver.find_element(By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent').click()
+            self.pagar()
+        except:
+            print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
+            self.finish = True
         
         
-        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent')))
-        self.__driver.find_element(By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent').click()
-        self.pagar()
 
     def fillcc1(self):
         #DATACC
@@ -431,11 +466,10 @@ class Gate_amazon:
         print(Fore.BLUE +"ADDING CC", Fore.WHITE)
         timer7 = threading.Timer(0, self.filladress)
         timer7.start()
-        return True
-
+        
     def delete_data(self):
-        self.load_cctxt()
-        self.crearlinea()
+        #self.load_cctxt('d')
+        #self.crearlinea()
         print(Fore.BLUE, 'DELETE USER DATA', Fore.WHITE)
         try:
             self.__driver.get('https://www.amazon.it/a/addresses?ref_=ya_d_c_addr')

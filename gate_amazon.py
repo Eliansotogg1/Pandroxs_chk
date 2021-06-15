@@ -469,7 +469,6 @@ class Gate_amazon:
 
     def filladress(self):
         #DATA ADRESS AND PAY
-        error = False
         print(Fore.BLUE + "ADDING ADDRESS", Fore.WHITE)
         
         WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
@@ -503,12 +502,12 @@ class Gate_amazon:
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
         self.__driver.find_element(By.NAME, 'ppw-updateEverywhereAddCreditCard').click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
-        while True:
-            try:
-                WebDriverWait(self.__driver, 1).until(EC.presence_of_element_located((By.LINK_TEXT, 'Si è verificato un problema.')))   
-                error = False
-            except:
-                error = True
+        
+        try:
+            WebDriverWait(self.__driver, 5).until(EC.presence_of_element_located((By.LINK_TEXT, 'Si è verificato un problema.')))   
+            error = False
+        except:
+            error = True
         
         if error == True:
             print(Fore.BLUE +"ADDING CC", Fore.WHITE)

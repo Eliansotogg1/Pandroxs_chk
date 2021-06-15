@@ -1,6 +1,4 @@
-from logging import exception
 from selenium import webdriver
-from selenium.webdriver.common import by
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -12,7 +10,6 @@ from playsound import playsound
 from string import ascii_letters
 from random import choice, randint
 import threading
-import random
 import names
 import os
 import sys
@@ -112,7 +109,7 @@ class Gate_amazon:
                 WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
-                timer0 = threading.Timer(0, self.fillcc1())
+                timer0 = threading.Timer(1, self.fillcc1())
                 timer0.start()
                 while True:
                     try:
@@ -172,7 +169,7 @@ class Gate_amazon:
         self.chrome_options.add_argument('--incognito')
         self.chrome_options.add_argument("--window-size=800,600")
         #self.chrome_options.add_argument("--headless")                  #Ocultar navegador
-        self.chrome_options.add_argument('--no-sandbox')               #Only linux
+        #self.chrome_options.add_argument('--no-sandbox')               #Only linux
         self.chrome_options.add_argument('--ignore-certificate-errors')
         self.chrome_options.add_argument('--disable-dev-shm-usage')
 
@@ -434,9 +431,14 @@ class Gate_amazon:
 
     def filladress(self):
         #DATA ADRESS AND PAY
+        self.finish = False
         print(Fore.BLUE + "ADDING ADDRESS", Fore.WHITE)
         try:
             WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
+        except:
+            self.finish = True
+
+        if self.finish != True:
             self.__driver.find_element(By.NAME, 'ppw-line1').send_keys("20 Wyckoff Ave")
             self.__driver.find_element(By.NAME, 'ppw-city').send_keys("New York")
             self.__driver.find_element(By.NAME, 'ppw-stateOrRegion').send_keys("NY")
@@ -448,10 +450,8 @@ class Gate_amazon:
             WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent')))
             self.__driver.find_element(By.NAME, 'ppw-widgetEvent:UseSuggestedAddressEvent').click()
             self.pagar()
-        except:
+        else:
             print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
-            self.finish = True
-        
         
 
     def fillcc1(self):

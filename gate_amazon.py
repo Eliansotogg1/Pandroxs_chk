@@ -1,4 +1,5 @@
 from copy import error
+from logging import ERROR
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -111,17 +112,18 @@ class Gate_amazon:
                 WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                 self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
-                timer0 = threading.Timer(0, self.fillcc1())
-                timer0.start()
+                #timer0 = threading.Timer(0, self.fillcc1())
+                #timer0.start()
+                self.delete_data()
                 while True:
                     try:
                         if self.finish == True:
                             print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
-                            self.delete_data()
                             self.__driver.quit()
                             break
                     except:
                         pass
+
                 
     def load_cctxt(self, e):
         if e == 'a':
@@ -139,14 +141,17 @@ class Gate_amazon:
             ccs.close()
 
     def crearlinea(self):
-        file = [s.rstrip() for s in self.ccs]
-        self.index_cc = self.indice_ultima - self.count_cc
-        self.cc = file[self.index_cc].split("|")
-        self.cc1 = self.cc[0]
-        self.mes = self.cc[1] 
-        self.anio = self.cc[2]
-        self.cvv = self.cc[3]
-        self.count_cc -= 1
+        try:
+            file = [s.rstrip() for s in self.ccs]
+            self.index_cc = self.indice_ultima - self.count_cc
+            self.cc = file[self.index_cc].split("|")
+            self.cc1 = self.cc[0]
+            self.mes = self.cc[1] 
+            self.anio = self.cc[2]
+            self.cvv = self.cc[3]
+            self.count_cc -= 1
+        except:
+            self.finish = True
         
 
     def delete_line(self):
@@ -377,25 +382,22 @@ class Gate_amazon:
         self.__driver.find_element(By.NAME, 'ppw-updateEverywhereAddCreditCard').click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
         try:
-            WebDriverWait(self.__driver, 5).until(EC.presence_of_element_located((By.LINK_TEXT, 'Si è verificato un problema.')))
-            error = True
-        except:
+            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:SelectAddressEvent')))
             error = False
+        except:
+            error = True
         
         if error == False:
             print(Fore.BLUE +"ADDING CC", Fore.WHITE)
             timer5 = threading.Timer(0, self.buttonsfill)
             timer5.start()
         else:
+            print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
             self.__driver.find_element(By.NAME, 'ppw-accountHolderName').clear()
             self.__driver.find_element(By.NAME, 'addCreditCardNumber').clear()
-            try:
-                self.crearlinea()
-                timer0 = threading.Timer(0, self.refill())
-                timer0.start()
-                print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
-            except:
-                pass
+            self.crearlinea()
+            timer0 = threading.Timer(0, self.refill())
+            timer0.start()
                    
 
     def recheck(self):
@@ -502,24 +504,25 @@ class Gate_amazon:
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
         self.__driver.find_element(By.NAME, 'ppw-updateEverywhereAddCreditCard').click()
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
+                                                                                       
         
         try:
-            WebDriverWait(self.__driver, 5).until(EC.presence_of_element_located((By.LINK_TEXT, 'Si è verificato un problema.')))   
+            WebDriverWait(self.__driver, 5).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
             error = False
-        except:
+        except TimeoutException:
             error = True
-        
-        if error == True:
+
+        if error == False:
             print(Fore.BLUE +"ADDING CC", Fore.WHITE)
             timer7 = threading.Timer(0, self.filladress)
             timer7.start()
         else:
+            print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
             self.__driver.find_element(By.NAME, 'ppw-accountHolderName').clear()
             self.__driver.find_element(By.NAME, 'addCreditCardNumber').clear()
             self.crearlinea()
             timer0 = threading.Timer(0, self.fillcc1())
             timer0.start()
-            print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
 
 
 
@@ -530,29 +533,33 @@ class Gate_amazon:
             self.__driver.get('https://www.amazon.it/a/addresses?ref_=ya_d_c_addr')
             WebDriverWait(self.__driver, 5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="ya-myab-edit-address-desktop-row-0"]/span')))
             self.__driver.find_element(By.XPATH, '//*[@id="ya-myab-edit-address-desktop-row-0"]/span').click()
-            sleep(1)
+            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[3]/div/div/div/div/div[4]/div[2]/div/div[2]/form/span/span/input')))
             self.__driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div/div[4]/div[2]/div/div[2]/form/span/span/input').click()
-            sleep(2)
+            #sleep(2)
+            self.__driver.implicitly_wait(2)
         except:
             print(Fore.RED, 'ADRESS DONT FOUND', Fore.WHITE)
 
         try:
             self.__driver.get('https://www.amazon.it/cpe/yourpayments/wallet?ref_=ya_d_c_pmt_mpo')
-            sleep(1)
             while True: 
                 try:
-                    sleep(2)
+                    WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/a')))
+                    #sleep(2)
                     self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/a').click()
                     self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/div/div[3]/div[2]/span[2]/span/input').click()
-                    sleep(3)
+                    #sleep(3)
+                    WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:DeleteInstrumentEvent')))
                     self.__driver.find_element(By.NAME, 'ppw-widgetEvent:DeleteInstrumentEvent').click()
-                    sleep(3)
+                    #sleep(3)
+                    self.__driver.implicitly_wait(3)
                     self.__driver.refresh()
                 except:
                     print(Fore.RED, 'CCs DELETEDS', Fore.WHITE)
                     break
         finally:
             print(Fore.RED, 'CCs DONT FOUND', Fore.WHITE)
+        self.finish = True
 
 
 

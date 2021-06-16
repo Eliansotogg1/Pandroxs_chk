@@ -18,29 +18,23 @@ import sys
 
 class Gate_amazon:
 
-    def __init__(self, status, delete):
+    def __init__(self, status, delete = True):
         
-        if status == True:
+        if status == 0:
             try:
                 init()
-                sys.tracebacklimit = 0     #Manejo de excepcioneswa
+                #sys.tracebacklimit = 0     #Manejo de excepcioneswa
                 now = time()
                 #Cargando ccs
                 self.load_cctxt('a')
                 self.crearlinea()
                 print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
-
                 print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
-
-                self.dominemail = ''
+                
                 self.webdriver_chromeoptions()
                 #Temp page
                 path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
                 self.__browser221 = webdriver.Chrome(path, options=self.chrome_options)   #Crea la interfaz con las opciones
-                
-                #self.__browser221.get(f"https://tempm.com/{self.dominemail}") #Carga la web
-                #self.tempmail()  #Extrae datos del mail
-
                 
                 self.__browser221.get('https://embedded.cryptogmail.com/')
                 self.crypto_mail()
@@ -49,30 +43,35 @@ class Gate_amazon:
                 self.__driver = webdriver.Chrome(path, options=self.chrome_options)   #Crea interfaz con las opciones
                 self.__driver.get("https://www.amazon.it/gp/prime/pipeline/membersignup")  #Carga la web 
                 error = self.registroamazon()    #Se registra en amazon
-                #self.load_mailtxt()
-
-                error = False
-                try:
-                    WebDriverWait(self.__driver, 120).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Aggiungi una carta di credito o di debito')))
-                except:
-                    error = True
+                #self.load_mailtxt()             # Buscar correos
 
                 if error == False:
+                    error = False
                     try:
-                        self.__driver.find_element(By.ID, 'sp-cc-accept').click()
-                    finally:
-                        self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-                        
-                        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
-                        self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
+                        WebDriverWait(self.__driver, 120).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Aggiungi una carta di credito o di debito')))
+                    except:
+                        error = True
+
+                    if error == False:
+                        try:
+                            self.__driver.find_element(By.ID, 'sp-cc-accept').click()
+                        finally:
+                            self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
+                            
+                            WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
+                            self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
 
 
-                print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
+                    print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
+                else:
+                    print(Fore.RED, "CAN'T SINGUP ACCOUNT", Fore.WHITE)
+                    #self.__driver.quit()
+                    print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
 
             except WebDriverException as ex:
                 print(Fore.RED, ex.msg[14:], Fore.WHITE)
         
-        else:
+        elif status == 1:
             
             init()
             #sys.tracebacklimit = 0     #Manejo de excepcioneswa
@@ -137,8 +136,35 @@ class Gate_amazon:
                                 break
                         except:
                             pass
+        elif status == 2:
+            init()
+            #sys.tracebacklimit = 0     #Manejo de excepcioneswa
+            now = time()
+            #Cargando ccs
+            self.load_cctxt('a')
+            self.crearlinea()
+            print(Fore.LIGHTBLUE_EX, 'Cargando CCs', Fore.WHITE)
+            print(Fore.LIGHTBLUE_EX, 'Cargando Gate', Fore.WHITE)
 
-                
+            self.webdriver_chromeoptions()
+            path = f'{os.path.dirname(os.path.realpath(__file__))}\chromedriver.exe'
+            self.__driver = webdriver.Chrome(path, options=self.chrome_options)
+            self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
+            self.__driver.find_element(By.ID, 'ap_email').send_keys('3132121716')
+            self.__driver.find_element(By.ID, 'ap_password').send_keys('ColombiaSOS2021')
+            self.__driver.find_element(By.ID, 'signInSubmit').click()
+            sleep(5)
+            timer0 = threading.Timer(0, self.delete_data())
+            timer0.start()
+            while True:
+                try:
+                    if self.finish == True:
+                        print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
+                        self.__driver.quit()
+                        break
+                except:
+                    pass
+          
     def load_cctxt(self, e):
         if e == 'a':
             ccs = open("cc.txt", "r+")
@@ -202,17 +228,22 @@ class Gate_amazon:
     def crypto_mail(self):
 
         print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)                                   
-  
-        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div[1]/div/div[2]/a[3]")))
+        WebDriverWait(self.__browser221, 15).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[1]/div/div[1]/div')))
+        mail0 = self.__browser221.find_element_by_xpath('/html/body/div/div[1]/div/div[1]/div')
+
+        WebDriverWait(self.__browser221, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div[1]/div/div[2]/a[3]")))
         self.__browser221.find_element_by_xpath("/html/body/div/div[1]/div/div[2]/a[3]").click()
         user = ''.join(choice(ascii_letters) + str(randint(0, 9)) for i in range(15))
-        WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input')))
+        WebDriverWait(self.__browser221, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input')))
         self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input').send_keys(user)
-        self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/a').click()
+        self.__browser221.find_element(By.PARTIAL_LINK_TEXT, 'Save').click()
 
-        WebDriverWait(self.__browser221, 15).until(EC.presence_of_element_located((By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/a')))
+        WebDriverWait(self.__browser221, 15).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[1]/div/div[1]/div')))
         mail = self.__browser221.find_element_by_xpath('/html/body/div/div[1]/div/div[1]/div')
         self.correitotemp = mail.text
+        
+        while True:
+            pass
 
     def tempmail(self):
 
@@ -312,8 +343,6 @@ class Gate_amazon:
             if "Errore interno. Riprova più tardi" in bodyText0:
                 print(Fore.YELLOW + str(i) + " ERROR, CHANGING EMAIL", Fore.WHITE)
                 i+=1
-                #self.__browser221.get(f"https://tempm.com/email-generator")
-                #self.tempmail()  #Extrae datos del mail
                 
                 self.__browser221.get('https://embedded.cryptogmail.com/')
                 self.crypto_mail()
@@ -352,20 +381,20 @@ class Gate_amazon:
 
                     if error == False:
                         print(Fore.CYAN +"OTP SOLVED", Fore.WHITE)
-                        return True                     
+                                             
                     else:
                         print(Fore.RED, 'OTP ERROR', Fore.WHITE)
-                        return False
-                        self.finish = True
+                        return True
                 else:
                     print(Fore.RED, 'Captcha no resuelto', Fore.WHITE)
-                    self.finish = True
+                    return True
             else:
                 print(Fore.RED, 'Error al cargar el captcha', Fore.WHITE)
-                self.finish = True
+                return True
         else:
             print(Fore.RED, 'Error al crear la cuenta (mail)', Fore.WHITE)
-            self.finish = True
+            return True
+
 
     def buttonsfill(self):
         WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:SelectAddressEvent')))
@@ -591,4 +620,4 @@ class Gate_amazon:
 
 
 
-Start = Gate_amazon(False, False)
+Start = Gate_amazon(0, False)

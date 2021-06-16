@@ -492,7 +492,7 @@ class Gate_amazon:
         #DATACC
         while True:
             try:
-                WebDriverWait(self.__driver, 2).until(EC.visibility_of_element_located(((By.NAME, 'ppw-accountHolderName'))))
+                WebDriverWait(self.__driver, 10).until(EC.visibility_of_element_located(((By.NAME, 'ppw-accountHolderName'))))
                 break
             except NoSuchWindowException:
                 pass

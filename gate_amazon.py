@@ -18,7 +18,7 @@ import sys
 
 class Gate_amazon:
 
-    def __init__(self, status):
+    def __init__(self, status, delete):
         
         if status == True:
             try:
@@ -98,31 +98,45 @@ class Gate_amazon:
             except:
                 pass
             finally:
-                while True:
-                    try:
-                        self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
-                        break
-                    except NoSuchElementException:
-                        print(Fore.YELLOW, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
-                        self.delete_data()
-                        self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
-                        self.__driver.implicitly_wait(2)
-                    
-                
-                WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
-                self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
+                if delete == True:
 
-                #timer0 = threading.Timer(0, self.fillcc1())
-                #timer0.start()
-                self.delete_data()
-                while True:
-                    try:
-                        if self.finish == True:
-                            print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
-                            self.__driver.quit()
+                    while True:
+                        try:
+                            self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
                             break
-                    except:
-                        pass
+                        except NoSuchElementException:
+                            print(Fore.YELLOW, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
+                            self.delete_data()
+                            self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
+                            self.__driver.implicitly_wait(2)
+                        
+                    
+                    WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
+                    self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
+
+                    timer0 = threading.Timer(0, self.fillcc1())
+                    timer0.start()
+                    while True:
+                        try:
+                            if self.finish == True:
+                                print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
+                                self.delete_data()
+                                self.__driver.quit()
+                                break
+                        except:
+                            pass
+                else: 
+                    
+                    timer0 = threading.Timer(0, self.recheck())
+                    timer0.start()
+                    while True:
+                        try:
+                            if self.finish == True:
+                                print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
+                                self.__driver.quit()
+                                break
+                        except:
+                            pass
 
                 
     def load_cctxt(self, e):
@@ -148,9 +162,12 @@ class Gate_amazon:
             self.cc1 = self.cc[0]
             self.mes = self.cc[1] 
             self.anio = self.cc[2]
-            self.cvv = self.cc[3]
+            try:
+                self.cvv = self.cc[3]
+            except IndexError:
+                self.cvv = 000
             self.count_cc -= 1
-        except:
+        except IndexError:
             self.finish = True
         
 
@@ -375,7 +392,7 @@ class Gate_amazon:
                 break
             except NoSuchWindowException:
                 pass
-        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"{self.index_cc}Pandorita Quintana")
+        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
@@ -401,9 +418,14 @@ class Gate_amazon:
                    
 
     def recheck(self):
-        WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[2]/div[2]/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input")))
-        self.__driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[2]/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input").click()
-        
+        try:
+            WebDriverWait(self.__driver, 2).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input')))
+            self.__driver.find_element_by_xpath('/html/body/div[1]/div[2]/div/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input').click()
+
+        except:
+            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[2]/div[2]/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input")))
+            self.__driver.find_element_by_xpath("/html/body/div[1]/div[2]/div[2]/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input").click()
+                                        
         WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Aggiungi una carta di credito o di debito')))
         self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
         
@@ -498,7 +520,7 @@ class Gate_amazon:
                 break
             except NoSuchWindowException:
                 pass
-        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"{self.index_cc}Pandorita Quintana")
+        self.__driver.find_element(By.NAME, 'ppw-accountHolderName').send_keys(f"Pandorita Quintana")
         self.__driver.find_element(By.NAME, 'addCreditCardNumber').send_keys(self.cc1)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_month').send_keys(self.mes)
         self.__driver.find_element(By.NAME, 'ppw-expirationDate_year').send_keys(self.anio)
@@ -569,4 +591,4 @@ class Gate_amazon:
 
 
 
-Start = Gate_amazon(False)
+Start = Gate_amazon(False, False)

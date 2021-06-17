@@ -14,6 +14,7 @@ from random import choice, randint
 import threading
 import names
 import os
+import wmi
 import sys
 
 class Gate_amazon:
@@ -181,20 +182,17 @@ class Gate_amazon:
             ccs.close()
 
     def crearlinea(self):
+        file = [s.rstrip() for s in self.ccs]
+        self.index_cc = self.indice_ultima - self.count_cc
+        self.cc = file[self.index_cc].split("|")
+        self.cc1 = self.cc[0]
+        self.mes = self.cc[1] 
+        self.anio = self.cc[2]
         try:
-            file = [s.rstrip() for s in self.ccs]
-            self.index_cc = self.indice_ultima - self.count_cc
-            self.cc = file[self.index_cc].split("|")
-            self.cc1 = self.cc[0]
-            self.mes = self.cc[1] 
-            self.anio = self.cc[2]
-            try:
-                self.cvv = self.cc[3]
-            except IndexError:
-                self.cvv = 000
-            self.count_cc -= 1
+            self.cvv = self.cc[3]
         except IndexError:
-            self.finish = True
+            self.cvv = 000
+        self.count_cc -= 1
         
 
     def delete_line(self):
@@ -227,15 +225,15 @@ class Gate_amazon:
 
     def crypto_mail(self):
 
-        print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)                                   
-        WebDriverWait(self.__browser221, 15).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[1]/div/div[1]/div')))
-        mail0 = self.__browser221.find_element_by_xpath('/html/body/div/div[1]/div/div[1]/div')
+        print(Fore.WHITE,"CREATING EMAIL...", Fore.WHITE)                                  
 
         WebDriverWait(self.__browser221, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/div[1]/div/div[2]/a[3]")))
+        sleep(2)
         self.__browser221.find_element_by_xpath("/html/body/div/div[1]/div/div[2]/a[3]").click()
         user = ''.join(choice(ascii_letters) + str(randint(0, 9)) for i in range(15))
         WebDriverWait(self.__browser221, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input')))
         self.__browser221.find_element(By.XPATH, '//*[@id="_tm_changeEmail"]/div/div[2]/div/div/input').send_keys(user)
+        sleep(2)
         self.__browser221.find_element(By.PARTIAL_LINK_TEXT, 'Save').click()
 
         WebDriverWait(self.__browser221, 15).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[1]/div/div[1]/div')))
@@ -489,6 +487,7 @@ class Gate_amazon:
             except IndexError:
                 print(Fore.LIGHTGREEN_EX, 'CHECKOUT COMPLETED', Fore.WHITE)
                 self.finish = True
+
         elif "Siamo spiacenti, ma solo i clienti con un indirizzo di fatturazione italiano possono iscriversi a Prime su Amazon.it" in bodyText:
             self.guardar_live()
             self.save_cc_account()
@@ -612,12 +611,10 @@ class Gate_amazon:
             print(Fore.RED, 'CCs DONT FOUND', Fore.WHITE)
         self.finish = True
 
+def get_disk_serial():
+        
+    c = wmi.WMI()
+    hddSerialNumber = c.Win32_PhysicalMedia()[0].wmi_property('SerialNumber').value.strip()
+    return hddSerialNumber
 
-
-
-
-
-
-
-
-Start = Gate_amazon(0, False)
+Start = Gate_amazon(1, True)

@@ -97,11 +97,14 @@ class Gate_cord:
             sleep(4)
             self.__driver.find_element_by_xpath('//*[@id="offCanvas"]/div[4]/div/div[2]/div/div[2]/a').click()
             sleep(6)
-            self.__driver.find_element_by_xpath("/html/body/app-root/div/div/app-cart/main/div[3]/div[2]/div/div[3]/div[7]/button").click()
+            self.__driver.get('https://www.cort.com/furniture-rental/login?return=checkout')
             sleep(6)
             self.__driver.find_element_by_xpath('/html/body/app-root/div/div/app-login/main/div[2]/div[1]/form/label/input').send_keys('sadabdhads@gmail.com')
             sleep(6)
             self.__driver.find_element_by_xpath('/html/body/app-root/div/div/app-login/main/div[2]/div[1]/form/div[3]/button')
+            sleep(6)
+            self.__driver.find_element_by_xpath('/html/body/app-root/div/div/app-checkout/main/section/div[1]/app-set-delivery-date/div[1]/div[2]/div[2]/form/div[1]/div[1]/label/input').send_keys('75050')
+            
 
 gate = Gate_cord()
 

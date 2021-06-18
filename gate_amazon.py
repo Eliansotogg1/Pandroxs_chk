@@ -65,7 +65,7 @@ class Gate_amazon:
 
                     print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
                 else:
-                    print(Fore.RED, "CAN'T SINGUP ACCOUNT", Fore.WHITE)
+                    print(Fore.RED, "CAN'T SIGN UP ACCOUNT", Fore.WHITE)
                     #self.__driver.quit()
                     print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60)
 
@@ -399,7 +399,7 @@ class Gate_amazon:
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:SelectAddressEvent').click()
         while True:
             try:
-                WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]"))))
+                WebDriverWait(self.__driver, 30).until(EC.element_to_be_clickable((By.XPATH, (f".//span[contains(@data-number, '{self.cc1[len(self.cc1)-4:]}')]"))))
                 break
             except NoSuchWindowException:
                 pass
@@ -585,7 +585,7 @@ class Gate_amazon:
             self.__driver.find_element(By.XPATH, '//*[@id="ya-myab-edit-address-desktop-row-0"]/span').click()
             WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[3]/div/div/div/div/div[4]/div[2]/div/div[2]/form/span/span/input')))
             self.__driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div/div[4]/div[2]/div/div[2]/form/span/span/input').click()
-            #sleep(2)
+            
             self.__driver.implicitly_wait(2)
         except:
             print(Fore.RED, 'ADRESS DONT FOUND', Fore.WHITE)
@@ -595,13 +595,13 @@ class Gate_amazon:
             while True: 
                 try:
                     WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/a')))
-                    #sleep(2)
+                    #
                     self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/a').click()
                     self.__driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[4]/div/div/div[2]/div/div/form/div[1]/div/div[2]/div[1]/div/div/div[3]/div[2]/span[2]/span/input').click()
-                    #sleep(3)
+                    
                     WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.NAME, 'ppw-widgetEvent:DeleteInstrumentEvent')))
                     self.__driver.find_element(By.NAME, 'ppw-widgetEvent:DeleteInstrumentEvent').click()
-                    #sleep(3)
+                    
                     self.__driver.implicitly_wait(3)
                     self.__driver.refresh()
                 except:

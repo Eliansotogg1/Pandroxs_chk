@@ -102,9 +102,10 @@ class Gate_amazon:
 
                     while True:
                         try:
+                            WebDriverWait(self.__driver, 4).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Aggiungi una carta di credito o di debito')))
                             self.__driver.find_element(By.LINK_TEXT, 'Aggiungi una carta di credito o di debito').click()
                             break
-                        except NoSuchElementException:
+                        except (NoSuchElementException, TimeoutException):
                             print(Fore.YELLOW, 'CLEANING ACCOUNT DATA, WAIT A FEW SECONDS...')
                             self.delete_data()
                             self.__driver.get('https://www.amazon.it/gp/prime/pipeline/membersignup')
@@ -113,7 +114,7 @@ class Gate_amazon:
                     
                     WebDriverWait(self.__driver, 10).until(EC.presence_of_element_located((By.XPATH, ".//iframe[contains(@name,'ApxSecureIframe')]")))
                     self.__driver.switch_to.frame(self.__driver.find_element_by_xpath(".//iframe[contains(@name,'ApxSecureIframe')]"))
-
+                    self.finish = False
                     timer0 = threading.Timer(0, self.fillcc1())
                     timer0.start()
                     while True:
@@ -132,11 +133,11 @@ class Gate_amazon:
                     while True:
                         try:
                             if self.finish == True:
+                                WebDriverWait(self.__driver, 4).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Aggiungi una carta di credito o di debito')))
                                 print(Fore.MAGENTA, 'Tiempo transcurrido: ', (time()-now)/60, Fore.WHITE)
-                                self.__driver.quit()
                                 break
                         except:
-                            pass
+                            self.__driver.quit()
         elif status == 2:
             init()
             #sys.tracebacklimit = 0     #Manejo de excepcioneswa
@@ -437,16 +438,21 @@ class Gate_amazon:
             timer5.start()
         else:
             print(Fore.RED, 'CC DATA ERROR', Fore.WHITE)
-            self.__driver.find_element(By.NAME, 'ppw-accountHolderName').clear()
-            self.__driver.find_element(By.NAME, 'addCreditCardNumber').clear()
-            self.crearlinea()
-            timer0 = threading.Timer(0, self.refill())
-            timer0.start()
+            try:
+                self.__driver.find_element(By.NAME, 'ppw-accountHolderName').clear()
+                self.__driver.find_element(By.NAME, 'addCreditCardNumber').clear()
+                self.crearlinea()
+                timer0 = threading.Timer(0, self.refill())
+                timer0.start()
+            except NoSuchElementException:
+                self.__driver.refresh()
+                timer0 = threading.Timer(0, self.recheck())
+                timer0.start()
                    
 
     def recheck(self):
         try:
-            WebDriverWait(self.__driver, 2).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input')))
+            WebDriverWait(self.__driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[2]/div/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input')))
             self.__driver.find_element_by_xpath('/html/body/div[1]/div[2]/div/div[4]/div[2]/div[2]/form/div/div/div/div[1]/div[2]/div/span[4]/input').click()
 
         except:
@@ -556,14 +562,14 @@ class Gate_amazon:
         self.__driver.find_element(By.NAME, 'ppw-widgetEvent:AddCreditCardEvent').click()
                                                                                        
         
-        try:
+        try:            
+            print(Fore.BLUE +"ADDING CC", Fore.WHITE)
             WebDriverWait(self.__driver, 5).until(EC.presence_of_element_located((By.NAME, 'ppw-line1')))
             error = False
         except TimeoutException:
             error = True
 
         if error == False:
-            print(Fore.BLUE +"ADDING CC", Fore.WHITE)
             timer7 = threading.Timer(0, self.filladress)
             timer7.start()
         else:
@@ -618,3 +624,4 @@ def get_disk_serial():
     return hddSerialNumber
 
 Start = Gate_amazon(1, True)
+print(get_disk_serial())
